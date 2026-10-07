@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="app-version" content="V1.2">
+<title>Settings</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --top:calc(env(safe-area-inset-top) + 18px); /* 顶部留白 18px */
+  --side:18px;
+  --inset:20px;  /* 标题 / 卡片文字 / 输入标签 统一左缩进 */
+  --bottom:calc(env(safe-area-inset-bottom) + 32px);
+  --bg:#f7f7f7;  /* 主页 / 子页面统一背景 */
+}
+html,body{
+  width:100%;
+  min-height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);
+  color:#111;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;border:0;background:none;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid #111;outline-offset:2px}
+input:focus,input:focus-visible{outline:none;box-shadow:none}
+button:disabled{opacity:.5;cursor:default}
+
+.page{
+  min-height:100vh;
+  min-height:100dvh;
+  padding:var(--top) var(--side) var(--bottom);
+}
+
+/* 主页标题：与卡片外框左边缘对齐，字号更大 */
+.settings-btn{
+  display:block;
+  padding:8px 0;
+  margin:-8px 0 -8px -1px; /* -1px 抵消大字号字形左侧留白 */          /* 扩大点击区域，不影响位置 */
+  font-size:34px;
+  line-height:40px;
+  font-weight:700;
+  letter-spacing:-.8px;
+  text-align:left;
+}
+
+/* 卡片：iOS 分组列表样式（同组行合并成一张大圆角卡，分隔线从文字起点开始） */
+.cards{margin-top:26px;display:flex;flex-direction:column;gap:32px}
+
+.group{
+  background:#fff;
+  border-radius:26px;
+  overflow:hidden;              /* 按下高亮跟随圆角 */
+}
+.row{
+  width:100%;
+  display:flex;
+  align-items:stretch;
+  min-height:54px;
+  padding-left:16px;
+  text-align:left;
+  transition:background .12s ease;
+}
+.row:active{background:rgba(60,60,67,.12)}
+.row:focus-visible{outline-offset:-2px}
+
+.row-icon{
+  flex:none;
+  align-self:center;
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  color:#111;
+  background:#f3f3f3;
+}
+.row-icon svg{width:20px;height:20px}
+.row-icon svg *{vector-effect:non-scaling-stroke}  /* 线条固定 1.5px，不随图标缩放 */
+
+.row-body{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  margin-left:14px;
+  padding-right:20px;
+  position:relative;
+}
+/* 分隔线：从文字左边缘开始，到箭头右边缘结束 */
+.row + .row .row-body::before{
+  content:"";
+  position:absolute;
+  top:0;left:0;right:20px;   /* 右端 = 箭头右边缘 */
+  height:.5px;
+  background:rgba(60,60,67,.22);
+}
+
+.row-title{
+  flex:1;
+  min-width:0;
+  font-size:17px;
+  font-weight:500;
+  line-height:23px;
+  letter-spacing:-.2px;
+}
+.row-ver{flex:none;font-size:15px;color:#8e8e93;letter-spacing:0;font-variant-numeric:tabular-nums}
+.row-arrow{
+  flex:none;
+  width:8px;
+  height:14px;
+  margin:0 2px 0 12px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%23c4c4c7' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.2 1.2L6.8 7l-5.6 5.8'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+
+/* 全屏面板（无顶栏，左边缘右滑返回） */
+.panel{
+  position:fixed;
+  inset:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;      /* 竖向滚动交给浏览器，横向手势交给我们 */
+  overscroll-behavior:contain;
+  padding:var(--top) var(--side) var(--bottom);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateX(28px);
+  transition:opacity .24s ease,transform .28s cubic-bezier(.22,.8,.2,1),visibility 0s linear .28s;
+}
+.panel.show{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:none;
+  transition-delay:0s;
+}
+.api-panel{
+  z-index:20;
+  background:var(--bg);
+}
+
+/* 子页面标题：字号比主页小，所有子页面统一左缩进 */
+.panel-title{
+  font-size:24px;
+  font-weight:700;
+  letter-spacing:-.6px;
+  line-height:30px;
+  margin-left:-.5px;
+}
+.panel-subtitle{
+  margin-top:6px;
+  font-size:13px;
+  color:#999;
+  line-height:20px;
+}
+
+/* 云端备份 Git 页：标题行高 = 字号，去掉上下多余留白，文字顶部正好距安全区 18px */
+#git-panel{padding-top:calc(env(safe-area-inset-top) + 18px)}
+#git-panel .panel-title{line-height:24px}
+#git-panel .panel-subtitle{margin-top:8px}
+#git-panel .api-form{margin-top:30px}
+
+/* 自动上传开关 */
+.switch-field{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  background:#fff;
+  border-radius:20px;
+  padding:14px var(--inset);
+}
+.switch-text{min-width:0}
+.switch-title{display:block;font-size:16px;font-weight:650;line-height:22px;letter-spacing:-.2px}
+.switch-sub{display:block;margin-top:2px;font-size:12px;line-height:18px;color:#999}
+.switch{
+  flex:none;
+  position:relative;
+  width:51px;
+  height:31px;
+  border-radius:999px;
+  background:#e5e5ea;
+  transition:background .2s ease;
+}
+.switch::after{
+  content:"";
+  position:absolute;
+  top:2px;left:2px;
+  width:27px;height:27px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.25);
+  transition:transform .2s cubic-bezier(.22,.8,.2,1);
+}
+.switch[aria-checked="true"]{background:#111}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+
+/* 聊天 API 表单 */
+.api-form{margin-top:28px;display:flex;flex-direction:column;gap:14px}
+.api-field{
+  display:block;
+  background:#fff;
+  border-radius:20px;
+  padding:14px var(--inset) 13px;
+}
+.api-label{display:block;font-size:12px;color:#999;margin-bottom:7px}
+.api-input{
+  width:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#111;
+  font:inherit;
+  font-size:16px; /* ≥16px，避免 iOS 聚焦时页面自动放大 */
+  line-height:22px;
+}
+.api-input::placeholder{color:#c7c7cc}
+.api-key-wrap{display:flex;align-items:center;gap:8px}
+.api-key-wrap .api-input{flex:1;min-width:0}
+.toggle-key{
+  flex:none;
+  min-width:40px;
+  height:30px;
+  padding:0 6px;
+  border-radius:10px;
+  color:#999;
+  font-size:12px;
+}
+.toggle-key:active{background:#f0f0f0}
+
+.api-buttons{display:flex;gap:10px;margin-top:4px}
+.api-test,.api-fetch,.api-save{
+  flex:1;
+  height:52px;
+  border-radius:18px;
+  font-size:15px;
+  font-weight:600;
+  transition:transform .18s ease,opacity .18s ease;
+}
+.api-test,.api-fetch{background:#e9e9e9;color:#111}
+.api-save{background:#111;color:#fff;flex:none;width:100%}
+.api-test:active,.api-fetch:active,.api-save:active{transform:scale(.985);opacity:.82}
+
+/* 顶部提示（Toast）：悬浮的深色圆角条，从上方滑下；点提示条或页面其他地方可收起 */
+#kb-toast{
+  --t-bg:#1D1D1F; --t-fg:#F5F5F7; --t-border:#1D1D1F;
+  --t-shadow:0 8px 28px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);
+  --t-dot:rgba(255,255,255,.14);
+  --t-ok:#34C759;   --t-ok-bg:rgba(52,199,89,.20);
+  --t-err:#FF6B60;  --t-err-bg:rgba(255,107,96,.20);
+  --t-info:#64A8FF; --t-info-bg:rgba(100,168,255,.20);
+  position:fixed;
+  left:calc(var(--side) + var(--inset));
+  right:calc(var(--side) + var(--inset));
+  top:calc(10px + env(safe-area-inset-top));
+  display:none;
+  justify-content:center;
+  pointer-events:none;
+  z-index:20000;
+  text-align:center;
+}
+#kb-toast .kb-toast-sheet{
+  box-sizing:border-box;
+  width:auto;
+  max-width:min(100%,446px);
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  min-height:38px;padding:6px 14px;
+  background:var(--t-bg);color:var(--t-fg);
+  border:1px solid var(--t-border);
+  border-radius:12px;box-shadow:var(--t-shadow);
+  font-size:13px;font-weight:700;letter-spacing:-.2px;text-align:center;
+  overflow-wrap:anywhere;word-break:break-word;
+  transform:translateY(calc(-100% - 16px - env(safe-area-inset-top)));
+  opacity:0;will-change:transform;
+  transition:transform .28s cubic-bezier(.4,0,1,1),opacity .22s ease-in;
+  pointer-events:none;cursor:pointer;
+}
+#kb-toast.show .kb-toast-sheet{
+  transform:translateY(0);opacity:1;pointer-events:auto;
+  transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .2s ease-out;
+}
+#kb-toast .kb-toast-sheet.swap .kb-toast-dot,
+#kb-toast .kb-toast-sheet.swap .kb-toast-msg{animation:kbToastSwap .28s ease-out}
+@keyframes kbToastSwap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#kb-toast .kb-toast-dot{
+  flex:none;width:22px;height:22px;border-radius:50%;
+  background:var(--t-dot);display:flex;align-items:center;justify-content:center;color:inherit;
+}
+#kb-toast .kb-toast-dot svg{width:13px;height:13px}
+#kb-toast .kb-toast-dot svg path{stroke:currentColor}
+#kb-toast .kb-toast-msg{line-height:1.4;min-width:0;flex:0 1 auto;text-align:center}
+#kb-toast .kb-toast-sheet[data-type="ok"] .kb-toast-dot{color:var(--t-ok);background:var(--t-ok-bg)}
+#kb-toast .kb-toast-sheet[data-type="error"] .kb-toast-dot{color:var(--t-err);background:var(--t-err-bg)}
+#kb-toast .kb-toast-sheet[data-type="info"] .kb-toast-dot{color:var(--t-info);background:var(--t-info-bg)}
+.kb-spinner{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:kbSpin .7s linear infinite}
+@keyframes kbSpin{to{transform:rotate(360deg)}}
+
+/* 拉取到的模型列表 */
+.model-list{
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+}
+.model-head{padding:13px var(--inset) 8px;font-size:12px;color:#999;line-height:18px}
+.model-search{position:relative;padding:0 14px 12px}
+.search-ico{position:absolute;left:27px;top:10px;width:18px;height:18px;color:#b5b5ba;pointer-events:none}
+.model-search input{
+  width:100%;
+  height:38px;
+  padding:0 14px 0 40px;
+  border:0;
+  outline:0;
+  border-radius:12px;
+  background:#f3f3f3;
+  color:#111;
+  font:inherit;
+  font-size:16px;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.model-search input::placeholder{color:#b5b5ba}
+.model-empty{padding:18px var(--inset);font-size:13px;color:#999;text-align:center}
+.model-scroll{max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid rgba(0,0,0,.05)}
+.model-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  padding:13px var(--inset);
+  text-align:left;
+  font-size:15px;
+  line-height:21px;
+  word-break:break-all;
+  border-bottom:1px solid rgba(0,0,0,.05);
+}
+.model-item:last-child{border-bottom:0}
+.model-item:active{background:#f6f6f6}
+.model-item.on{font-weight:650}
+.model-item.on::after{content:"✓";flex:none;margin-left:12px;font-size:14px}
+
+/* 已保存的方案 */
+.preset-section{margin-top:26px}
+.preset-head{padding-left:0;margin-bottom:10px;font-size:13px;color:#999;line-height:20px}
+.preset-list{display:flex;flex-direction:column;gap:10px}
+.preset-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#fff;
+  border-radius:20px;
+  transition:box-shadow .18s ease;
+}
+.preset-item.active{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.preset-info{
+  flex:1;
+  min-width:0;
+  padding:14px 0 13px var(--inset);
+  text-align:left;
+}
+.preset-name{display:block;font-size:16px;font-weight:650;line-height:22px;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset-sub{display:block;margin-top:2px;font-size:12px;line-height:18px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset-info:active{opacity:.6}
+.preset-del{
+  flex:none;
+  height:34px;
+  padding:0 12px;
+  margin-right:10px;
+  border-radius:12px;
+  font-size:12px;
+  color:#999;
+}
+.preset-del:active{background:#f0f0f0}
+.preset-del.confirm{color:#c62828}
+
+
+/* 底部磨砂玻璃搜索栏（悬浮胶囊） */
+.page{padding-bottom:calc(var(--bottom) + 68px)}   /* 给悬浮栏留出空间，最后一张卡不会被挡住 */
+.row[hidden],.group[hidden]{display:none}
+.row.first-vis .row-body::before{display:none}      /* 搜索过滤后，可见的第一行不显示顶部分隔线 */
+.search-empty{padding:40px 0;text-align:center;font-size:14px;color:#999}
+.search-empty[hidden]{display:none}
+
+.search-bar{
+  position:fixed;
+  left:var(--side);right:var(--side);
+  bottom:calc(env(safe-area-inset-bottom) + 10px);
+  z-index:10;                       /* 低于全屏面板(20)：进入子页面时自动被盖住 */
+  height:50px;
+  display:flex;align-items:center;gap:10px;
+  padding:0 6px 0 18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  backdrop-filter:blur(24px) saturate(180%);
+  border:.5px solid rgba(255,255,255,.75);
+  box-shadow:0 8px 30px rgba(0,0,0,.10),0 1px 3px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.85);
+  transition:bottom .2s ease;
+}
+.search-bar[inert]{visibility:hidden}
+/* 输入时锁住页面：键盘弹出不再把页面顶上去，也不会在背景里滚动 */
+html.kb-lock{overflow:hidden;overscroll-behavior:none}
+body.kb-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+.sb-ico{flex:none;width:22px;height:22px;color:#111}
+.search-bar input{
+  flex:1;min-width:0;height:100%;
+  border:0;outline:0;background:transparent;
+  font:inherit;font-size:17px;color:#111;
+  -webkit-appearance:none;appearance:none;
+}
+.search-bar input::placeholder{color:#7c7c80}
+.search-bar input::-webkit-search-cancel-button,
+.search-bar input::-webkit-search-decoration{-webkit-appearance:none;display:none}
+.sb-mic{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#111}
+.sb-mic svg{width:22px;height:22px}
+.sb-mic:active{background:rgba(0,0,0,.06)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms !important}
+  #kb-toast .kb-toast-sheet{transform:none}
+}
+</style>
+</head>
+
+<body>
+<main class="page">
+  <h1 class="settings-btn" id="openSettings">Settings</h1>
+
+  <section class="cards">
+    <div class="group">
+      <button class="row" id="chatApiCard" type="button" data-keywords="chat api 聊天 接口">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">聊天API</span>
+          <span class="row-arrow" aria-hidden="true"></span>
+        </span>
+      </button>
+      <button class="row" id="subApiCard" type="button" data-keywords="light sub api 轻量 副接口">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">轻量API</span>
+          <span class="row-arrow" aria-hidden="true"></span>
+        </span>
+      </button>
+      <button class="row" id="imgApiCard" type="button" data-keywords="image api 生图 图片 绘图">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">生图API</span>
+          <span class="row-arrow" aria-hidden="true"></span>
+        </span>
+      </button>
+      <button class="row" id="voiceApiCard" type="button" data-keywords="voice speech tts api 语音">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">语音API</span>
+          <span class="row-arrow" aria-hidden="true"></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="group single">
+      <button class="row" id="pullCard" type="button" data-keywords="update refresh pull 更新 刷新">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M18 3.8v3.4h-3.4"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">拉取更新</span>
+          <span class="row-ver" id="appVer"></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="group single">
+      <button class="row" id="gitCard" type="button" data-keywords="git github backup cloud 备份 云端 仓库">
+        <span class="row-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19a4.5 4.5 0 0 1-.7-8.95 6 6 0 0 1 11.4 1.4A3.8 3.8 0 0 1 17 19H7z"/></svg>
+        </span>
+        <span class="row-body">
+          <span class="row-title">云端备份</span>
+          <span class="row-arrow" aria-hidden="true"></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="search-empty" id="searchEmpty" hidden>No results</div>
+  </section>
+</main>
+
+<div class="search-bar" id="searchBar">
+  <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.9-4.9"/></svg>
+  <input id="searchInput" type="search" placeholder="Search" aria-label="Search"
+         enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <button class="sb-mic" id="searchMic" type="button" aria-label="Voice">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/></svg>
+  </button>
+</div>
+
+<section class="panel api-panel" id="apiPanel" aria-hidden="true" inert>
+  <div class="panel-title">聊天API</div>
+  <div class="panel-subtitle">配置聊天接口地址与密钥</div>
+
+  <div class="api-form">
+    <label class="api-field">
+      <span class="api-label">方案名称</span>
+      <input class="api-input" id="apiName" type="text"
+             placeholder="给这套配置起个名字（可不填）"
+             autocomplete="off" autocorrect="off" spellcheck="false" maxlength="30">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">API 地址</span>
+      <input class="api-input" id="apiUrl" type="url" inputmode="url"
+             placeholder="https://api.example.com/v1/chat/completions"
+             autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="api-field">
+      <label class="api-label" for="apiKey">API 密钥</label>
+      <div class="api-key-wrap">
+        <input class="api-input" id="apiKey" type="password"
+               placeholder="输入 API Key"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="toggle-key" id="toggleKey" type="button">显示</button>
+      </div>
+    </div>
+
+    <label class="api-field">
+      <span class="api-label">模型名称</span>
+      <input class="api-input" id="apiModel" type="text"
+             placeholder="gpt-4o-mini"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="model-list" id="modelList" hidden>
+      <div class="model-head" id="modelHead"></div>
+      <div class="model-search">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="modelSearch" type="search" aria-label="搜索模型" placeholder="搜索模型"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="model-scroll" id="modelScroll"></div>
+    </div>
+
+    <div class="api-buttons">
+      <button class="api-test" id="testApi" type="button">测试连接</button>
+      <button class="api-fetch" id="fetchModels" type="button">拉取模型</button>
+    </div>
+    <button class="api-save" id="saveApi" type="button">保存配置</button>
+  </div>
+
+  <div class="preset-section" id="presetSection" hidden>
+    <div class="preset-head">已保存的方案</div>
+    <div class="preset-list" id="presetList"></div>
+  </div>
+</section>
+
+<section class="panel api-panel" id="sub-apiPanel" aria-hidden="true" inert>
+  <div class="panel-title">轻量API</div>
+  <div class="panel-subtitle">配置副接口地址与密钥</div>
+
+  <div class="api-form">
+    <label class="api-field">
+      <span class="api-label">方案名称</span>
+      <input class="api-input" id="sub-apiName" type="text"
+             placeholder="给这套配置起个名字（可不填）"
+             autocomplete="off" autocorrect="off" spellcheck="false" maxlength="30">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">API 地址</span>
+      <input class="api-input" id="sub-apiUrl" type="url" inputmode="url"
+             placeholder="https://api.example.com/v1/chat/completions"
+             autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="api-field">
+      <label class="api-label" for="sub-apiKey">API 密钥</label>
+      <div class="api-key-wrap">
+        <input class="api-input" id="sub-apiKey" type="password"
+               placeholder="输入 API Key"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="toggle-key" id="sub-toggleKey" type="button">显示</button>
+      </div>
+    </div>
+
+    <label class="api-field">
+      <span class="api-label">模型名称</span>
+      <input class="api-input" id="sub-apiModel" type="text"
+             placeholder="gpt-4o-mini"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="model-list" id="sub-modelList" hidden>
+      <div class="model-head" id="sub-modelHead"></div>
+      <div class="model-search">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="sub-modelSearch" type="search" aria-label="搜索模型" placeholder="搜索模型"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="model-scroll" id="sub-modelScroll"></div>
+    </div>
+
+    <div class="api-buttons">
+      <button class="api-test" id="sub-testApi" type="button">测试连接</button>
+      <button class="api-fetch" id="sub-fetchModels" type="button">拉取模型</button>
+    </div>
+    <button class="api-save" id="sub-saveApi" type="button">保存配置</button>
+  </div>
+
+  <div class="preset-section" id="sub-presetSection" hidden>
+    <div class="preset-head">已保存的方案</div>
+    <div class="preset-list" id="sub-presetList"></div>
+  </div>
+</section>
+
+<section class="panel api-panel" id="img-apiPanel" aria-hidden="true" inert>
+  <div class="panel-title">生图API</div>
+  <div class="panel-subtitle">配置生图接口地址与密钥</div>
+
+  <div class="api-form">
+    <label class="api-field">
+      <span class="api-label">方案名称</span>
+      <input class="api-input" id="img-apiName" type="text"
+             placeholder="给这套配置起个名字（可不填）"
+             autocomplete="off" autocorrect="off" spellcheck="false" maxlength="30">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">API 地址</span>
+      <input class="api-input" id="img-apiUrl" type="url" inputmode="url"
+             placeholder="https://api.example.com/v1/images/generations"
+             autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="api-field">
+      <label class="api-label" for="img-apiKey">API 密钥</label>
+      <div class="api-key-wrap">
+        <input class="api-input" id="img-apiKey" type="password"
+               placeholder="输入 API Key"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="toggle-key" id="img-toggleKey" type="button">显示</button>
+      </div>
+    </div>
+
+    <label class="api-field">
+      <span class="api-label">模型名称</span>
+      <input class="api-input" id="img-apiModel" type="text"
+             placeholder="gpt-image-1"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="model-list" id="img-modelList" hidden>
+      <div class="model-head" id="img-modelHead"></div>
+      <div class="model-search">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="img-modelSearch" type="search" aria-label="搜索模型" placeholder="搜索模型"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="model-scroll" id="img-modelScroll"></div>
+    </div>
+
+    <div class="api-buttons">
+      <button class="api-test" id="img-testApi" type="button">测试连接</button>
+      <button class="api-fetch" id="img-fetchModels" type="button">拉取模型</button>
+    </div>
+    <button class="api-save" id="img-saveApi" type="button">保存配置</button>
+  </div>
+
+  <div class="preset-section" id="img-presetSection" hidden>
+    <div class="preset-head">已保存的方案</div>
+    <div class="preset-list" id="img-presetList"></div>
+  </div>
+</section>
+
+<section class="panel api-panel" id="voice-apiPanel" aria-hidden="true" inert>
+  <div class="panel-title">语音API</div>
+  <div class="panel-subtitle">配置语音接口地址与密钥</div>
+
+  <div class="api-form">
+    <label class="api-field">
+      <span class="api-label">方案名称</span>
+      <input class="api-input" id="voice-apiName" type="text"
+             placeholder="给这套配置起个名字（可不填）"
+             autocomplete="off" autocorrect="off" spellcheck="false" maxlength="30">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">API 地址</span>
+      <input class="api-input" id="voice-apiUrl" type="url" inputmode="url"
+             placeholder="https://api.example.com/v1/audio/speech"
+             autocomplete="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="api-field">
+      <label class="api-label" for="voice-apiKey">API 密钥</label>
+      <div class="api-key-wrap">
+        <input class="api-input" id="voice-apiKey" type="password"
+               placeholder="输入 API Key"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="toggle-key" id="voice-toggleKey" type="button">显示</button>
+      </div>
+    </div>
+
+    <label class="api-field">
+      <span class="api-label">模型名称</span>
+      <input class="api-input" id="voice-apiModel" type="text"
+             placeholder="tts-1"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="model-list" id="voice-modelList" hidden>
+      <div class="model-head" id="voice-modelHead"></div>
+      <div class="model-search">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="voice-modelSearch" type="search" aria-label="搜索模型" placeholder="搜索模型"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="model-scroll" id="voice-modelScroll"></div>
+    </div>
+
+    <div class="api-buttons">
+      <button class="api-test" id="voice-testApi" type="button">测试连接</button>
+      <button class="api-fetch" id="voice-fetchModels" type="button">拉取模型</button>
+    </div>
+    <button class="api-save" id="voice-saveApi" type="button">保存配置</button>
+  </div>
+
+  <div class="preset-section" id="voice-presetSection" hidden>
+    <div class="preset-head">已保存的方案</div>
+    <div class="preset-list" id="voice-presetList"></div>
+  </div>
+</section>
+
+<section class="panel api-panel" id="git-panel" aria-hidden="true" inert>
+  <div class="panel-title">云端备份</div>
+  <div class="panel-subtitle">配置用于备份的 GitHub 仓库</div>
+
+  <div class="api-form">
+    <label class="api-field">
+      <span class="api-label">仓库</span>
+      <input class="api-input" id="git-repo" type="text"
+             placeholder="用户名/仓库名，或粘贴仓库链接"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">分支</span>
+      <input class="api-input" id="git-branch" type="text"
+             placeholder="main"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <label class="api-field">
+      <span class="api-label">备份文件路径</span>
+      <input class="api-input" id="git-path" type="text"
+             placeholder="backup/data.json"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </label>
+
+    <div class="api-field">
+      <label class="api-label" for="git-token">GitHub Token</label>
+      <div class="api-key-wrap">
+        <input class="api-input" id="git-token" type="password"
+               placeholder="需要仓库的读写权限"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="toggle-key" id="git-toggleKey" type="button">显示</button>
+      </div>
+    </div>
+
+    <div class="switch-field">
+      <div class="switch-text">
+        <span class="switch-title">自动上传</span>
+        <span class="switch-sub">有改动时自动备份到仓库</span>
+      </div>
+      <button class="switch" id="git-auto" type="button" role="switch" aria-checked="false" aria-label="自动上传"></button>
+    </div>
+
+    <label class="api-field">
+      <span class="api-label">自动备份间隔（分钟）</span>
+      <input class="api-input" id="git-interval" type="number" inputmode="numeric"
+             min="1" max="1440" step="1" placeholder="5（可填 1 ~ 1440）"
+             autocomplete="off">
+    </label>
+
+    <div class="api-buttons">
+      <button class="api-test" id="git-test" type="button">测试连接</button>
+      <button class="api-fetch" id="git-upload" type="button">立即上传</button>
+    </div>
+    <button class="api-save" id="git-save" type="button">保存配置</button>
+  </div>
+</section>
+
+
+<div id="kb-toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const chatApiCard = $("chatApiCard");
+const apiPanel = $("apiPanel");
+const subApiCard = $("subApiCard");
+const imgApiCard = $("imgApiCard");
+const voiceApiCard = $("voiceApiCard");
+const subPanel = $("sub-apiPanel");
+const imgPanel = $("img-apiPanel");
+const voicePanel = $("voice-apiPanel");
+const gitPanel = $("git-panel");
+const gitCard = $("gitCard");
+
+/* ---------- 提示（Toast） ---------- */
+/* type: 'ok' | 'error' | 'info' | 'loading'；loading 不会自动消失，直到下一条提示出现或调用 hideToast() */
+const TOAST_ICONS = {
+  ok:'<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  error:'<svg viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 11v6M12 7.2v.01" stroke-width="2.8" stroke-linecap="round"/></svg>',
+  loading:'<span class="kb-spinner"></span>'
+};
+const TOAST_MS = {ok:2200, info:2600, error:3800};
+
+function hideToast(){
+  const el = $("kb-toast");
+  if(!el) return;
+  clearTimeout(el._t);
+  clearTimeout(el._d);
+  el.classList.remove("show");
+  el._d = setTimeout(() => { el.style.display = "none"; }, 450); // 退场动画放完后彻底移出页面
+}
+
+function toast(msg, type){
+  const el = $("kb-toast");
+  if(!el) return;
+  if(!TOAST_ICONS[type]) type = "info";
+  clearTimeout(el._d);
+  el.style.display = "flex";
+  let sheet = el.firstElementChild;
+  if(!sheet){
+    el.innerHTML = '<div class="kb-toast-sheet"><span class="kb-toast-dot"></span><span class="kb-toast-msg"></span></div>';
+    sheet = el.firstElementChild;
+  }
+  const wasShown = el.classList.contains("show");
+  const typeChanged = sheet.dataset.type !== type;
+  if(typeChanged){
+    sheet.dataset.type = type;
+    sheet.querySelector(".kb-toast-dot").innerHTML = TOAST_ICONS[type];
+  }
+  sheet.querySelector(".kb-toast-msg").textContent = msg;
+  sheet.onclick = hideToast;
+  sheet.classList.remove("swap");
+  void sheet.offsetHeight; // 强制回流：保证滑入动画一定会播放
+  if(wasShown && typeChanged) sheet.classList.add("swap");
+  el.classList.add("show");
+  clearTimeout(el._t);
+  if(type !== "loading") el._t = setTimeout(hideToast, Math.min(9000, TOAST_MS[type] + Math.max(0, String(msg).length - 14) * 90)); // 长文案多停一会儿
+}
+
+/* 点提示条以外的任意位置收起提示（加载中的提示不受影响） */
+document.addEventListener("pointerdown", e => {
+  const el = $("kb-toast");
+  if(!el || !el.classList.contains("show")) return;
+  const sheet = el.firstElementChild;
+  if(!sheet || sheet.dataset.type === "loading" || sheet.contains(e.target)) return;
+  hideToast();
+}, true);
+
+/* 旧的「状态文字」调用统一转成 Toast：success→ok，error→error，「正在…」→loading，其余→info；空字符串=收起 */
+function statusToast(text, type){
+  if(!text){ hideToast(); return; }
+  toast(text, type === "success" ? "ok" : type === "error" ? "error" : /^正在/.test(text) ? "loading" : "info");
+}
+
+
+
+/* ---------- 面板开关 ---------- */
+/* 用 inert 防止隐藏面板还能被 Tab / 读屏聚焦 */
+let histDepth = 0, skipPop = 0, inPop = false;
+function setPanel(panel, open){
+  const was = panel.classList.contains("show");
+  panel.classList.toggle("show", open);
+  panel.setAttribute("aria-hidden", String(!open));
+  panel.inert = !open;
+  const sb = document.getElementById("searchBar");
+  if(sb) sb.inert = !!topPanel();      // 子页面打开时，底部搜索栏不可聚焦
+  /* 打开面板时压入一条历史记录，这样安卓返回键 / 浏览器返回是关面板而不是退出页面 */
+  if(open && !was){
+    try{ history.pushState({panel:1}, ""); histDepth++; }catch(e){}
+  }else if(!open && was && histDepth > 0){
+    histDepth--;
+    if(!inPop){ skipPop++; history.back(); }
+  }
+}
+window.addEventListener("popstate", () => {
+  if(skipPop > 0){ skipPop--; return; }
+  const p = topPanel();
+  if(p){ inPop = true; setPanel(p, false); inPop = false; }
+});
+function topPanel(){
+  return [gitPanel, voicePanel, imgPanel, subPanel, apiPanel].find(p => p.classList.contains("show")) || null;
+}
+
+
+/* Esc 关闭最上层面板（桌面端） */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  const p = topPanel();
+  if(p) setPanel(p, false);
+});
+
+/* ---------- 左边缘右滑返回 ---------- */
+const EDGE = 24;           // 触发区：屏幕左侧 24px
+const LOCK_DIST = 8;       // 判定手势方向所需的位移
+const DURATION = 250;
+let drag = null;
+let animating = false;
+
+document.addEventListener("pointerdown", e => {
+  if(e.pointerType === "mouse" && e.button !== 0) return;
+  const p = topPanel();
+  if(animating || !p || e.clientX > EDGE) return;
+  drag = {p, id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, locked:false, t:performance.now()};
+});
+
+document.addEventListener("pointermove", e => {
+  if(!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x;
+  const dy = e.clientY - drag.y;
+
+  if(!drag.locked){
+    if(Math.abs(dx) < LOCK_DIST && Math.abs(dy) < LOCK_DIST) return;
+    if(Math.abs(dy) > Math.abs(dx) || dx < 0){ drag = null; return; } // 竖向滚动或向左：放弃
+    drag.locked = true;
+    drag.p.style.transition = "none";
+    try{ drag.p.setPointerCapture(e.pointerId); }catch(_){}
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+  drag.dx = Math.max(0, dx);
+  drag.p.style.transform = `translateX(${drag.dx}px)`;
+});
+
+function endDrag(e){
+  if(!drag || e.pointerId !== drag.id) return;
+  const {p, dx, locked, t} = drag;
+  drag = null;
+  if(!locked) return;
+
+  const elapsed = Math.max(1, performance.now() - t);
+  const shouldClose = e.type === "pointerup" &&
+    (dx > window.innerWidth * 0.33 || dx / elapsed > 0.5);
+
+  animating = true;
+  p.style.transition = `transform ${DURATION}ms cubic-bezier(.22,.8,.2,1)`;
+  p.style.transform = shouldClose ? "translateX(100%)" : "translateX(0)";
+
+  setTimeout(() => {
+    p.style.transition = "none";      // 清理时不播放动画，避免闪一下
+    if(shouldClose) setPanel(p, false);
+    p.style.transform = "";
+    p.offsetWidth;                    // 强制重排
+    p.style.transition = "";
+    animating = false;
+  }, DURATION);
+}
+document.addEventListener("pointerup", endDrag);
+document.addEventListener("pointercancel", endDrag);
+
+/* ---------- API 面板（主 / 副 共用同一套逻辑，各自独立存储） ---------- */
+function initApi(prefix, cfg){
+const $ = id => document.getElementById(prefix + id);
+const apiName = $("apiName");
+const apiUrl = $("apiUrl");
+const apiKey = $("apiKey");
+const apiModel = $("apiModel");
+const toggleKey = $("toggleKey");
+const testApi = $("testApi");
+const fetchModels = $("fetchModels");
+const modelList = $("modelList");
+const modelHead = $("modelHead");
+const modelScroll = $("modelScroll");
+const modelSearch = $("modelSearch");
+let allModels = [];
+const saveApi = $("saveApi");
+const presetSection = $("presetSection");
+const presetList = $("presetList");
+
+/* ---------- 聊天 API ---------- */
+const PRESETS_KEY = cfg.presetsKey;
+let presets = [];
+let activeId = null;
+let loaded = false;
+
+function readPresets(){
+  try{
+    const list = JSON.parse(localStorage.getItem(PRESETS_KEY) || "[]");
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function writePresets(){
+  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+}
+
+function fillForm(c){
+  apiName.value = c.name || "";
+  apiUrl.value = c.url || "";
+  apiKey.value = c.key || "";
+  apiModel.value = c.model || "";
+}
+
+function loadApiConfig(){
+  presets = readPresets();
+  activeId = null;
+  try{
+    const saved = JSON.parse(localStorage.getItem(cfg.configKey) || "{}") || {};
+    /* 兼容旧版：只有单份配置时，自动生成一个「默认方案」 */
+    if(!presets.length && saved.url){
+      const p = {id:String(Date.now()), name:"默认方案", url:saved.url, key:saved.key || "", model:saved.model || ""};
+      presets = [p];
+      try{ writePresets(); }catch(e){}
+      saved.name = p.name;
+    }
+    fillForm(saved);
+    const hit = presets.find(p => p.name === saved.name && p.url === saved.url);
+    if(hit) activeId = hit.id;
+  }catch(e){}
+  renderPresets();
+}
+
+function renderPresets(){
+  presetList.textContent = "";
+  presetSection.hidden = presets.length === 0;
+  presets.forEach(p => {
+    const item = document.createElement("div");
+    item.className = "preset-item" + (p.id === activeId ? " active" : "");
+
+    const info = document.createElement("button");
+    info.type = "button";
+    info.className = "preset-info";
+    const n = document.createElement("span");
+    n.className = "preset-name";
+    n.textContent = p.name;
+    const sub = document.createElement("span");
+    sub.className = "preset-sub";
+    sub.textContent = [p.model, (p.url || "").replace(/^https?:\/\//i, "")].filter(Boolean).join(" · ");
+    info.append(n, sub);
+    info.addEventListener("click", () => {
+      activeId = p.id;
+      modelList.hidden = true;
+      fillForm(p);
+      try{ localStorage.setItem(cfg.configKey, JSON.stringify(p)); }catch(e){}
+      setApiStatus(`已切换到「${p.name}」`, "success");
+      renderPresets();
+    });
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "preset-del";
+    del.textContent = "删除";
+    let timer = null;
+    del.addEventListener("click", () => {
+      if(!del.classList.contains("confirm")){
+        del.classList.add("confirm");
+        del.textContent = "确认删除";
+        timer = setTimeout(() => {
+          del.classList.remove("confirm");
+          del.textContent = "删除";
+        }, 2500);
+        return;
+      }
+      clearTimeout(timer);
+      modelList.hidden = true;
+      presets = presets.filter(x => x.id !== p.id);
+      try{ writePresets(); }catch(e){}
+      if(activeId === p.id || !presets.length){
+        activeId = null;
+        try{ localStorage.removeItem(cfg.configKey); }catch(e){}
+        fillForm({});
+      }
+      setApiStatus(`已删除「${p.name}」`);
+      renderPresets();
+    });
+
+    item.append(info, del);
+    presetList.append(item);
+  });
+}
+
+toggleKey.addEventListener("click", () => {
+  const hidden = apiKey.type === "password";
+  apiKey.type = hidden ? "text" : "password";
+  toggleKey.textContent = hidden ? "隐藏" : "显示";
+});
+
+function setApiStatus(text, type = "normal"){
+  statusToast(text, type);
+}
+
+function buildEndpoint(url){
+  let endpoint = url.replace(/\/+$/, "");
+  if(!/\/chat\/completions$/i.test(endpoint)) endpoint += "/chat/completions";
+  return endpoint;
+}
+
+/* 生图 / 语音接口：真的生成内容会花钱，所以测试连接只请求 /models 校验地址和密钥 */
+async function testImageApi(){
+  const url = apiUrl.value.trim();
+  const key = apiKey.value.trim();
+
+  if(!url){
+    setApiStatus("请先填写 API 地址", "error");
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)){
+    setApiStatus("API 地址需要以 http:// 或 https:// 开头", "error");
+    return;
+  }
+
+  testApi.disabled = true;
+  saveApi.disabled = true;
+  fetchModels.disabled = true;
+  testApi.textContent = "连接中…";
+  setApiStatus("正在测试连接…");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try{
+    const headers = {};
+    if(key) headers["Authorization"] = `Bearer ${key}`;
+    const response = await fetch(buildModelsEndpoint(url), {headers, signal:controller.signal});
+
+    let data = null;
+    try{ data = await response.json(); }catch(e){}
+
+    if(response.ok){
+      setApiStatus(`连接成功，地址和密钥可用（${cfg.testNote}）`, "success");
+    }else if(response.status === 404 || response.status === 405){
+      setApiStatus("该服务没有提供模型列表接口，无法免费测试，可直接保存后使用", "normal");
+    }else{
+      const msg =
+        data?.error?.message ||
+        data?.message ||
+        `HTTP ${response.status} ${response.statusText}`;
+      setApiStatus(`连接失败：${msg}`, "error");
+    }
+  }catch(error){
+    if(error.name === "AbortError"){
+      setApiStatus("连接超时，请检查地址或网络", "error");
+    }else if(error instanceof TypeError){
+      setApiStatus("连接失败：网络不通，或浏览器拦截了跨域请求（CORS）", "error");
+    }else{
+      setApiStatus(`连接失败：${error.message}`, "error");
+    }
+  }finally{
+    clearTimeout(timer);
+    testApi.disabled = false;
+    saveApi.disabled = false;
+    fetchModels.disabled = false;
+    testApi.textContent = "测试连接";
+  }
+}
+
+async function testChatApi(){
+  const url = apiUrl.value.trim();
+  const key = apiKey.value.trim();
+  const model = apiModel.value.trim();
+
+  if(!url){
+    setApiStatus("请先填写 API 地址", "error");
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)){
+    setApiStatus("API 地址需要以 http:// 或 https:// 开头", "error");
+    return;
+  }
+
+  testApi.disabled = true;
+  saveApi.disabled = true;
+  fetchModels.disabled = true;
+  testApi.textContent = "连接中…";
+  setApiStatus("正在测试真实连接…");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try{
+    const headers = {"Content-Type":"application/json"};
+    if(key) headers["Authorization"] = `Bearer ${key}`;
+
+    const endpoint = buildEndpoint(url);
+    const send = extra => fetch(endpoint, {
+      method:"POST",
+      headers,
+      body:JSON.stringify({
+        model: model || "gpt-4o-mini",
+        messages:[{role:"user", content:"ping"}],
+        ...extra
+      }),
+      signal:controller.signal
+    });
+
+    let response = await send({max_tokens:1});
+    let data = null;
+    try{ data = await response.json(); }catch(e){}
+
+    /* 部分新模型不接受 max_tokens，换参数名重试一次，避免误报失败 */
+    if(!response.ok && /max_tokens/i.test(data?.error?.message || data?.message || "")){
+      response = await send({max_completion_tokens:1});
+      data = null;
+      try{ data = await response.json(); }catch(e){}
+    }
+
+    if(response.ok){
+      setApiStatus("连接成功，API 可以正常访问", "success");
+    }else{
+      const msg =
+        data?.error?.message ||
+        data?.message ||
+        `HTTP ${response.status} ${response.statusText}`;
+      setApiStatus(`连接失败：${msg}`, "error");
+    }
+  }catch(error){
+    if(error.name === "AbortError"){
+      setApiStatus("连接超时，请检查地址或网络", "error");
+    }else if(error instanceof TypeError){
+      setApiStatus("连接失败：网络不通，或浏览器拦截了跨域请求（CORS）", "error");
+    }else{
+      setApiStatus(`连接失败：${error.message}`, "error");
+    }
+  }finally{
+    clearTimeout(timer);
+    testApi.disabled = false;
+    saveApi.disabled = false;
+    fetchModels.disabled = false;
+    testApi.textContent = "测试连接";
+  }
+}
+
+testApi.addEventListener("click", cfg.path ? testImageApi : testChatApi);
+
+/* ---------- 拉取模型 ---------- */
+function buildModelsEndpoint(url){
+  let base = url.replace(/\/+$/, "").replace(/\/(chat\/completions|images\/generations|audio\/speech)$/i, "");
+  return base + "/models";
+}
+
+function drawModelItems(){
+  const q = modelSearch.value.trim().toLowerCase();
+  const list = q ? allModels.filter(id => id.toLowerCase().includes(q)) : allModels;
+  const current = apiModel.value.trim();
+
+  modelHead.textContent = q
+    ? `匹配 ${list.length} / ${allModels.length} 个模型`
+    : `共 ${allModels.length} 个模型`;
+  modelScroll.textContent = "";
+
+  if(!list.length){
+    const empty = document.createElement("div");
+    empty.className = "model-empty";
+    empty.textContent = "没有匹配的模型";
+    modelScroll.append(empty);
+    return;
+  }
+
+  list.forEach(id => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "model-item" + (id === current ? " on" : "");
+    b.textContent = id;
+    b.addEventListener("click", () => {
+      apiModel.value = id;
+      modelList.hidden = true;
+      setApiStatus(`已选择模型：${id}`, "success");
+    });
+    modelScroll.append(b);
+  });
+}
+
+function renderModelList(ids){
+  allModels = ids;
+  modelSearch.value = "";
+  drawModelItems();
+  modelScroll.scrollTop = 0;
+  modelList.hidden = false;
+}
+
+modelSearch.addEventListener("input", () => {
+  drawModelItems();
+  modelScroll.scrollTop = 0;
+});
+
+async function fetchModelList(){
+  const url = apiUrl.value.trim();
+  const key = apiKey.value.trim();
+
+  if(!url){
+    setApiStatus("请先填写 API 地址", "error");
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)){
+    setApiStatus("API 地址需要以 http:// 或 https:// 开头", "error");
+    return;
+  }
+
+  testApi.disabled = true;
+  saveApi.disabled = true;
+  fetchModels.disabled = true;
+  fetchModels.textContent = "拉取中…";
+  setApiStatus("正在拉取模型列表…");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try{
+    const headers = {};
+    if(key) headers["Authorization"] = `Bearer ${key}`;
+
+    const response = await fetch(buildModelsEndpoint(url), {headers, signal:controller.signal});
+
+    let data = null;
+    try{ data = await response.json(); }catch(e){}
+
+    if(!response.ok){
+      const msg =
+        data?.error?.message ||
+        data?.message ||
+        `HTTP ${response.status} ${response.statusText}`;
+      setApiStatus(`拉取失败：${msg}`, "error");
+      return;
+    }
+
+    let arr = Array.isArray(data) ? data : (data?.data || data?.models || []);
+    if(!Array.isArray(arr)) arr = [];
+    const ids = [...new Set(
+      arr.map(m => typeof m === "string" ? m : (m?.id || m?.name)).filter(x => typeof x === "string" && x)
+    )].sort((a, b) => a.localeCompare(b));
+
+    if(!ids.length){
+      setApiStatus("拉取成功，但没有返回可用模型", "error");
+      return;
+    }
+    renderModelList(ids);
+    setApiStatus(`拉取成功，共 ${ids.length} 个模型`, "success");
+  }catch(error){
+    if(error.name === "AbortError"){
+      setApiStatus("拉取超时，请检查地址或网络", "error");
+    }else if(error instanceof TypeError){
+      setApiStatus("拉取失败：网络不通，或浏览器拦截了跨域请求（CORS）", "error");
+    }else{
+      setApiStatus(`拉取失败：${error.message}`, "error");
+    }
+  }finally{
+    clearTimeout(timer);
+    testApi.disabled = false;
+    saveApi.disabled = false;
+    fetchModels.disabled = false;
+    fetchModels.textContent = "拉取模型";
+  }
+}
+
+fetchModels.addEventListener("click", fetchModelList);
+
+saveApi.addEventListener("click", () => {
+  const url = apiUrl.value.trim();
+  const key = apiKey.value.trim();
+  const model = apiModel.value.trim();
+  let name = apiName.value.trim();
+
+  if(!url){
+    setApiStatus("请先填写 API 地址", "error");
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)){
+    setApiStatus("API 地址需要以 http:// 或 https:// 开头", "error");
+    return;
+  }
+
+  /* 名称留空则自动编号；同名覆盖，新名字则新增一个方案 */
+  if(!name){
+    let k = presets.length + 1;
+    while(presets.some(p => p.name === `方案 ${k}`)) k++;
+    name = `方案 ${k}`;
+    apiName.value = name;
+  }
+
+  const exist = presets.find(p => p.name === name);
+  const preset = {id: exist ? exist.id : String(Date.now()), name, url, key, model};
+  const next = presets.slice();
+  if(exist) next[presets.indexOf(exist)] = preset;
+  else next.push(preset);
+
+  try{
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(next));
+    localStorage.setItem(cfg.configKey, JSON.stringify(preset));
+  }catch(e){
+    setApiStatus("保存失败：浏览器禁止本地存储", "error");
+    return;
+  }
+  presets = next;
+  activeId = preset.id;
+
+  renderPresets();
+  setApiStatus(exist ? `已更新方案「${name}」` : `已保存方案「${name}」`, "success");
+});
+
+return {
+  open(){
+    if(!loaded){ loadApiConfig(); loaded = true; }
+    modelList.hidden = true;
+    setApiStatus("");
+  }
+};
+}
+
+const mainApi = initApi("", {configKey:"chatApiConfig", presetsKey:"chatApiPresets"});
+const subApi = initApi("sub-", {configKey:"subApiConfig", presetsKey:"subApiPresets"});
+const imgApi = initApi("img-", {configKey:"imgApiConfig", presetsKey:"imgApiPresets", path:"/images/generations", testNote:"未生成图片"});
+const voiceApi = initApi("voice-", {configKey:"voiceApiConfig", presetsKey:"voiceApiPresets", path:"/audio/speech", testNote:"未生成语音"});
+
+chatApiCard.addEventListener("click", () => {
+  mainApi.open();
+  setPanel(apiPanel, true);
+});
+subApiCard.addEventListener("click", () => {
+  subApi.open();
+  setPanel(subPanel, true);
+});
+imgApiCard.addEventListener("click", () => {
+  imgApi.open();
+  setPanel(imgPanel, true);
+});
+voiceApiCard.addEventListener("click", () => {
+  voiceApi.open();
+  setPanel(voicePanel, true);
+});
+
+/* ---------- 云端备份 Git（GitHub 仓库配置） ---------- */
+const gitBackup = (function(){
+  const KEY = "gitBackupConfig";
+  const repo = $("git-repo"), branch = $("git-branch"), path = $("git-path");
+  const token = $("git-token"), toggle = $("git-toggleKey");
+  const test = $("git-test"), save = $("git-save");
+  const autoSw = $("git-auto"), upBtn = $("git-upload"), interval = $("git-interval");
+  let loaded = false;
+  let auto = false, busy = false, sched = null, conflictWarned = false, errWarned = false;
+
+  const HASH_KEY = "gitBackupLastHash";
+  const SHA_KEY = "gitBackupLastSha";   /* 上次和云端同步时，云端文件的版本号 */
+  /* 备份间隔（分钟）：留空按 5 分钟，范围 1 ~ 1440 */
+  function getMinutes(){
+    const n = parseInt(interval.value, 10);
+    return Number.isFinite(n) ? Math.min(1440, Math.max(1, n)) : 5;
+  }
+  /* 备份内容 = 本地全部数据，但不含 Git Token 和各 API 密钥，避免密钥被传上 GitHub */
+  const SKIP = new Set(["gitBackupConfig","gitBackupLastHash","gitBackupLastSha",
+    "chatApiConfig","chatApiPresets","subApiConfig","subApiPresets",
+    "imgApiConfig","imgApiPresets","voiceApiConfig","voiceApiPresets"]);
+
+  function setStatus(text, type = "normal"){
+    statusToast(text, type);
+  }
+  /* 支持直接粘贴 https://github.com/用户名/仓库名(.git) */
+  function normalizeRepo(v){
+    return v.trim()
+      .replace(/^https?:\/\/github\.com\//i, "")
+      .replace(/\/+$/, "")
+      .replace(/\.git$/i, "");
+  }
+  function fill(c){
+    repo.value = c.repo || "";
+    branch.value = c.branch || "";
+    path.value = c.path || "";
+    token.value = c.token || "";
+    interval.value = c.interval || "";
+  }
+  function load(){
+    try{ fill(JSON.parse(localStorage.getItem(KEY) || "{}") || {}); }
+    catch(e){ fill({}); }
+  }
+  function storedCfg(){
+    try{ return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function collect(){
+    const o = {};
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!SKIP.has(k) && !k.startsWith("gitBackup")) o[k] = localStorage.getItem(k);
+    }
+    return JSON.stringify(o, Object.keys(o).sort(), 2);
+  }
+  function hashStr(str){
+    let h = 5381;
+    for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return String(h);
+  }
+  /* UTF-8 → base64；用 TextEncoder，遇到孤立代理项也不会抛错（会被替换成 U+FFFD） */
+  const b64 = str => {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for(let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  };
+  const encPath = p => p.split("/").map(encodeURIComponent).join("/");
+
+  function setAuto(on){
+    auto = on;
+    autoSw.setAttribute("aria-checked", String(on));
+    clearInterval(sched);
+    sched = on ? setInterval(() => upload(false), getMinutes() * 60 * 1000) : null;
+  }
+
+  /* manual=true：点「立即上传」，不管有没有改动都传；false：自动，内容没变就跳过 */
+  async function upload(manual){
+    if(busy) return;
+    let c;
+    if(manual){
+      /* 手动上传：以表单当前填写的值为准，和「测试连接」一致 */
+      const v = check();
+      if(!v) return;
+      repo.value = v.r;
+      c = {repo:v.r, branch:branch.value.trim(), path:path.value.trim(), token:v.k};
+    }else{
+      c = storedCfg();
+      if(!c.repo || !c.token) return;
+    }
+    const p = (c.path || "backup/data.json").replace(/^\/+/, "");
+    const target = `${c.repo}|${c.branch || ""}|${p}`;   // 换仓库/分支/路径后，哈希和版本号都视为全新
+    const body = collect();
+    const h = target + "#" + hashStr(body) + ":" + body.length;
+    if(manual){
+      if(body === "{}" && !confirm("本地没有任何数据，上传会用空内容覆盖云端备份。确定继续？")) return;
+    }else{
+      if(body === "{}") return;                              // 本地没有数据：不自动上传，免得空数据盖掉云端
+      if(h === localStorage.getItem(HASH_KEY)) return;       // 没有改动：不重复上传
+    }
+
+    busy = true;
+    upBtn.disabled = true;
+    upBtn.textContent = "上传中…";
+    if(manual) setStatus("正在上传…");
+
+    try{
+      const api = `https://api.github.com/repos/${c.repo}/contents/${encPath(p)}`;
+      const head = {Accept:"application/vnd.github+json", Authorization:`Bearer ${c.token}`};
+
+      let sha;
+      const g = await fetch(api + (c.branch ? `?ref=${encodeURIComponent(c.branch)}` : ""), {headers:head, cache:"no-store"});
+      if(g.ok) sha = (await g.json()).sha;
+      else if(g.status !== 404) throw new Error(g.status === 401 ? "Token 无效或已过期" : `HTTP ${g.status}`);
+
+      /* 自动上传不覆盖别处的更新：云端文件版本和上次同步的不一样（别的设备改过，或本机从没同步过），就先停下来 */
+      if(!manual && sha && (target + "#" + sha) !== localStorage.getItem(SHA_KEY)){
+        if(!conflictWarned){
+          conflictWarned = true;
+          setStatus("云端文件有更新，已暂停自动覆盖；要覆盖请点「立即上传」", "error");
+        }
+        return;
+      }
+
+      const put = await fetch(api, {
+        method:"PUT",
+        headers:{...head, "Content-Type":"application/json"},
+        body:JSON.stringify({
+          message:`backup ${new Date().toISOString()}`,
+          content:b64(body),
+          ...(sha ? {sha} : {}),
+          ...(c.branch ? {branch:c.branch} : {})
+        })
+      });
+      if(!put.ok){
+        let m = ""; try{ m = (await put.json()).message; }catch(e){}
+        throw new Error(m || `HTTP ${put.status}`);
+      }
+      localStorage.setItem(HASH_KEY, h);
+      try{ const r = await put.json(); if(r?.content?.sha) localStorage.setItem(SHA_KEY, target + "#" + r.content.sha); }catch(e){}
+      conflictWarned = false;
+      errWarned = false;
+      if(manual){
+        const t = new Date();
+        setStatus(`已上传 ${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")}`, "success");
+      }
+    }catch(error){
+      if(manual || !errWarned){
+        if(!manual) errWarned = true;   // 自动模式下同一类失败只提示一次，成功后重置
+        if(error instanceof TypeError) setStatus("上传失败：网络不通", "error");
+        else setStatus(`上传失败：${error.message}`, "error");
+      }
+    }finally{
+      busy = false;
+      upBtn.disabled = false;
+      upBtn.textContent = "立即上传";
+    }
+  }
+
+  autoSw.addEventListener("click", () => {
+    if(autoSw.getAttribute("aria-checked") !== "true"){
+      const v = check();
+      if(!v) return;
+      repo.value = v.r;
+      const m = getMinutes();
+      interval.value = m;
+      try{
+        localStorage.setItem(KEY, JSON.stringify({repo:v.r, branch:branch.value.trim(), path:path.value.trim(), token:v.k, auto:true, interval:m}));
+      }catch(e){
+        setStatus("开启失败：浏览器禁止本地存储", "error");
+        return;
+      }
+      setAuto(true);
+      setStatus(`自动上传已开启，每 ${m} 分钟检查一次`, "success");
+      upload(false);
+    }else{
+      setAuto(false);
+      const c = storedCfg();
+      c.auto = false;
+      try{ localStorage.setItem(KEY, JSON.stringify(c)); }catch(e){}
+      setStatus("自动上传已关闭");
+    }
+  });
+  /* 改完间隔：规范化输入；自动上传开着就立刻按新间隔重新计时 */
+  interval.addEventListener("change", () => {
+    const m = getMinutes();
+    interval.value = m;
+    if(!auto) return;
+    const c = storedCfg();
+    c.interval = m;
+    try{ localStorage.setItem(KEY, JSON.stringify(c)); }catch(e){}
+    setAuto(true);
+    setStatus(`已改为每 ${m} 分钟自动上传一次`, "success");
+  });
+  upBtn.addEventListener("click", () => upload(true));
+  document.addEventListener("visibilitychange", () => { if(document.hidden && auto) upload(false); });
+
+  function check(){
+    const r = normalizeRepo(repo.value);
+    const k = token.value.trim();
+    if(!/^[\w.-]+\/[\w.-]+$/.test(r)){
+      setStatus("仓库格式应为 用户名/仓库名", "error");
+      return null;
+    }
+    if(!k){
+      setStatus("请先填写 GitHub Token", "error");
+      return null;
+    }
+    return {r, k};
+  }
+
+  toggle.addEventListener("click", () => {
+    const hidden = token.type === "password";
+    token.type = hidden ? "text" : "password";
+    toggle.textContent = hidden ? "隐藏" : "显示";
+  });
+
+  const gh = (url, k, signal) => fetch(url, {
+    headers:{Accept:"application/vnd.github+json", Authorization:`Bearer ${k}`},
+    signal
+  });
+
+  test.addEventListener("click", async () => {
+    const v = check();
+    if(!v) return;
+
+    test.disabled = true;
+    save.disabled = true;
+    test.textContent = "连接中…";
+    setStatus("正在连接 GitHub…");
+
+    const controller = new AbortController();
+    const timer2 = setTimeout(() => controller.abort(), 15000);
+
+    try{
+      const res = await gh(`https://api.github.com/repos/${v.r}`, v.k, controller.signal);
+      if(res.status === 401){ setStatus("连接失败：Token 无效或已过期", "error"); return; }
+      if(res.status === 404){ setStatus("连接失败：找不到该仓库，或 Token 没有访问权限", "error"); return; }
+      if(!res.ok){ setStatus(`连接失败：HTTP ${res.status}`, "error"); return; }
+
+      const data = await res.json();
+      if(data?.permissions && data.permissions.push === false){
+        setStatus("能访问仓库，但 Token 没有写入权限", "error");
+        return;
+      }
+
+      const br = branch.value.trim();
+      if(br){
+        const r2 = await gh(`https://api.github.com/repos/${v.r}/branches/${encodeURI(br).replace(/[#?]/g, c => encodeURIComponent(c))}`, v.k, controller.signal);
+        if(r2.status === 404){ setStatus(`仓库里没有分支「${br}」`, "error"); return; }
+        if(!r2.ok){ setStatus(`检查分支失败：HTTP ${r2.status}`, "error"); return; }
+      }
+      setStatus(`连接成功，可以写入 ${v.r}`, "success");
+    }catch(error){
+      if(error.name === "AbortError") setStatus("连接超时，请检查网络", "error");
+      else setStatus("连接失败：网络不通", "error");
+    }finally{
+      clearTimeout(timer2);
+      test.disabled = false;
+      save.disabled = false;
+      test.textContent = "测试连接";
+    }
+  });
+
+  save.addEventListener("click", () => {
+    const v = check();
+    if(!v) return;
+    repo.value = v.r;
+    const cfg = {repo:v.r, branch:branch.value.trim(), path:path.value.trim(), token:v.k, auto, interval:getMinutes()};
+    try{
+      localStorage.setItem(KEY, JSON.stringify(cfg));
+    }catch(e){
+      setStatus("保存失败：浏览器禁止本地存储", "error");
+      return;
+    }
+    setStatus("已保存配置", "success");
+  });
+
+  /* 页面一打开就恢复自动上传，不需要先进设置页 */
+  (function(){
+    const c = storedCfg();
+    interval.value = c.interval || "";
+    if(c.auto && c.repo && c.token){ setAuto(true); upload(false); }
+  })();
+
+  return {
+    open(){
+      if(!loaded){ load(); loaded = true; }
+      setStatus("");
+    }
+  };
+})();
+
+gitCard.addEventListener("click", () => {
+  gitBackup.open();
+  setPanel(gitPanel, true);
+});
+
+/* ---------- 底部搜索栏：过滤主页设置项 ---------- */
+(function(){
+  const input = $("searchInput"), bar = $("searchBar"), empty = $("searchEmpty");
+  const groups = [...document.querySelectorAll(".cards .group")];
+
+  function filter(){
+    const q = input.value.trim().toLowerCase();
+    let any = false;
+    groups.forEach(g => {
+      let first = true, vis = 0;
+      g.querySelectorAll(".row").forEach(r => {
+        const text = (r.querySelector(".row-title").textContent + " " + (r.dataset.keywords || "")).toLowerCase();
+        const hit = !q || text.includes(q);
+        r.hidden = !hit;
+        r.classList.toggle("first-vis", hit && first);
+        if(hit){ first = false; vis++; }
+      });
+      g.hidden = vis === 0;
+      if(vis) any = true;
+    });
+    empty.hidden = any;
+  }
+  /* 输入时页面固定：把 body 钉在当前位置，失焦后恢复原滚动位置 */
+  let lockY = 0;
+  function lock(){
+    if(document.body.classList.contains("kb-lock")) return;
+    lockY = window.scrollY;
+    document.body.style.top = (-lockY) + "px";
+    document.body.classList.add("kb-lock");
+    document.documentElement.classList.add("kb-lock");
+  }
+  function unlock(){
+    if(!document.body.classList.contains("kb-lock")) return;
+    document.body.classList.remove("kb-lock");
+    document.documentElement.classList.remove("kb-lock");
+    document.body.style.top = "";
+    window.scrollTo(0, lockY);
+  }
+  input.addEventListener("focus", lock);
+  input.addEventListener("blur", unlock);
+  /* 点搜索栏以外的地方收起键盘（iOS 默认不会） */
+  document.addEventListener("pointerdown", e => {
+    if(document.activeElement === input && !bar.contains(e.target)) input.blur();
+  }, true);
+
+  input.addEventListener("input", filter);
+  input.addEventListener("keydown", e => { if(e.key === "Enter") input.blur(); });
+  $("searchMic").addEventListener("click", () => input.focus());
+
+  /* 键盘弹出时，让悬浮栏贴在键盘上方（iOS 的 fixed 元素不会自动上移） */
+  const vv = window.visualViewport;
+  if(vv){
+    const place = () => {
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      bar.style.bottom = kb > 80 ? (kb + 10) + "px" : "";
+    };
+    const pin = () => { if(document.activeElement === input && (vv.offsetTop > 0 || window.scrollY > 0)) window.scrollTo(0, 0); };
+    vv.addEventListener("resize", () => { place(); pin(); });
+    vv.addEventListener("scroll", () => { place(); pin(); });
+  }
+})();
+
+/* ---------- 拉取更新：一次把小手机里所有页面都更新到最新版 ---------- */
+/* 版本号只写在每个文件 <head> 的 <meta name="app-version"> 里；设置、名册、小手机三个文件保持同一个版本号 */
+const APP_VERSION = (document.querySelector('meta[name="app-version"]') || {}).content || "";
+$("appVer").textContent = APP_VERSION;
+
+/* 页面清单：小手机每次打开都会把自己和所有图标链接的页面名写进 xsj_pages，这里读出来，
+   再并上默认清单和自己，所以以后新接进小手机的页面也会被一起拉取 */
+const PAGES_KEY = "xsj_pages";
+const DEFAULT_PAGES = ["小手机.html", "名册.html", "设置.html", "直链.html"];
+function allPages(){
+  let reg = [];
+  try{ reg = JSON.parse(localStorage.getItem(PAGES_KEY) || "[]") || []; }catch(e){}
+  let self = "";
+  try{ self = decodeURIComponent(location.pathname.split("/").pop() || ""); }catch(e){}
+  return [...new Set([...reg, ...DEFAULT_PAGES, self].filter(Boolean))];
+}
+
+let refreshing = false;
+async function forceRefresh(){
+  if(refreshing) return;
+  refreshing = true;
+  toast("正在拉取最新版本…", "loading");
+  try{
+    if("serviceWorker" in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if("caches" in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  }catch(e){}
+  /* cache:"reload" = 绕过缓存重新下载，同时把浏览器里的缓存副本换成最新的；逐个页面都拉一遍 */
+  const results = await Promise.all(allPages().map(async name => {
+    try{
+      const res = await fetch(new URL(name, location.href).href, {cache:"reload"});
+      if(!res.ok) return {name, state:"missing"};      // 这个页面不存在（比如还没上传），跳过
+      const m = (await res.text()).match(/<meta\s+name=["']app-version["']\s+content=["']([^"']*)["']/i);
+      return {name, state:"ok", ver:m ? m[1] : ""};
+    }catch(e){ return {name, state:"fail"}; }
+  }));
+  const got = results.filter(r => r.state === "ok");
+  if(!got.length){
+    refreshing = false;
+    toast("拉取失败，请检查网络后再试", "error");
+    return;
+  }
+  const vers = [...new Set(got.map(r => r.ver).filter(Boolean))];
+  toast(vers.length > 1
+    ? "已拉取 " + got.length + " 个页面，但版本不一致：" + got.map(r => r.name.replace(/\.html$/i, "") + " " + (r.ver || "无")).join("、")
+    : "已拉取全部 " + got.length + " 个页面" + (vers[0] ? " · " + vers[0] : ""), vers.length > 1 ? "error" : "ok");
+  await new Promise(r => setTimeout(r, vers.length > 1 ? 1800 : 900));   // 让提示先露个脸
+  location.reload();
+}
+$("pullCard").addEventListener("click", forceRefresh);
+</script>
+</body>
+</html>
