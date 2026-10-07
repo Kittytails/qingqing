@@ -1,2 +1,0 @@
-# qingqing
-Image host
