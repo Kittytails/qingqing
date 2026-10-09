@@ -15,12 +15,12 @@
 <style>
   :root{--bg-color:#f7f7f7;--text-color:#222;--gray-color:#888;--white:#fff}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
-  /* 状态栏透明后壁纸铺到顶；用 padding 把内容让开安全区，图标位置不变 */
-  /* html 自己有底色 → 壁纸不再按 html 的高度去铺；body 固定撑满整个屏幕（含状态栏下和底部），
-     再用 padding-top 把内容让开安全区，图标/搜索/Dock 的位置和原来一致 */
-  html{background:var(--bg-color)}
-  body{position:fixed;top:0;left:0;right:0;bottom:0;width:auto;height:var(--app-h,auto);padding-top:env(safe-area-inset-top,0px)}
+  html,body{width:100%;overscroll-behavior:none}
+  /* 状态栏透明后壁纸铺到顶；用 padding 把内容让开安全区，图标位置不变。
+     iOS 主屏幕 App 里页面不可滚动时，可视区会少一个状态栏高度(底部被裁掉)；
+     和直链一样让文档比屏幕多 1px(可滚动)，并用 --app-h 把 body 撑满整屏 */
+  html{background:var(--bg-color);height:auto;overflow:auto;min-height:calc(var(--app-h,100%) + 1px)}
+  body{overflow:hidden;position:relative;height:var(--app-h,100vh);padding-top:env(safe-area-inset-top,0px)}
   body{background:var(--bg-color);font-family:var(--app-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif);display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 
   /* ===== 编辑模式顶部胶囊 ===== */
@@ -131,7 +131,7 @@
   body.on-dark .desktop .label{color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.3)}
   .icon.has-img{background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;font-size:0}
   .folder-mini span.has-img{background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;font-size:0}
-  .app-layer{position:fixed;inset:0;z-index:30000;display:none;background:var(--bg-color);opacity:0;transform:scale(.94);transition:opacity .26s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
+  .app-layer{position:fixed;top:0;left:0;right:0;bottom:0;height:var(--app-h,auto);z-index:30000;display:none;background:var(--bg-color);opacity:0;transform:scale(.94);transition:opacity .26s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
   .app-layer.show{display:block}
   .app-layer.open{opacity:1;transform:none}
   .app-layer iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#f7f7f9}
@@ -162,18 +162,26 @@
   .folder-modal-grid .app.jiggle .folder-remove-badge{display:block}
 </style>
 <script>
-/* iOS 主屏幕 App + 透明状态栏时，页面高度(100%/innerHeight)会比整屏少一个状态栏，
-   导致壁纸底部露白、Dock 上移、图标行距变小。这里用 screen.height 把整屏高度补回来 */
+/* iOS 主屏幕 App + 透明状态栏时，页面高度(100%/innerHeight)可能比整屏少一个状态栏，
+   导致壁纸底部露白、Dock 上移、图标行距变小。这里把整屏高度补回来 */
 (function(){
-  var r=document.documentElement;
+  var r=document.documentElement,dbg=null;
+  function lvh(){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none';document.documentElement.appendChild(d);var h=d.offsetHeight;d.remove();return h}
+  function topInset(){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;height:env(safe-area-inset-top,0px);visibility:hidden';document.documentElement.appendChild(d);var h=d.offsetHeight;d.remove();return h}
   function fit(){
     var sa=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
-    var ih=window.innerHeight,iw=window.innerWidth;
-    var sh=Math.max(screen.height,screen.width);
-    if(sa&&ih>=iw&&sh>ih&&sh-ih<=120)r.style.setProperty('--app-h',sh+'px');
-    else r.style.removeProperty('--app-h');
+    var ih=window.innerHeight,iw=window.innerWidth,sh=Math.max(screen.height,screen.width),lv=lvh(),h=0;
+    if(sa&&ih>=iw){
+      h=Math.max(ih,lv);
+      if(sh>h&&sh-h<=120)h=sh;
+    }
+    r.style.setProperty('--app-h',Math.max(h,ih)+'px');
+    if(!dbg&&document.body){dbg=document.createElement('div');dbg.style.cssText='position:fixed;left:6px;top:calc(env(safe-area-inset-top,0px) + 2px);z-index:2147483647;font:9px/11px monospace;color:#fff;background:rgba(0,0,0,.6);padding:2px 4px;border-radius:4px;pointer-events:none;white-space:pre';document.body.appendChild(dbg)}
+    if(dbg)dbg.textContent='fix5 sa='+(sa?1:0)+' ih='+ih+' sh='+sh+' lvh='+lv+' top='+topInset()+' app-h='+h+' body='+(document.body?document.body.offsetHeight:'-');
   }
   fit();
+  document.addEventListener('DOMContentLoaded',fit);
+  window.addEventListener('load',fit);
   window.addEventListener('resize',fit);
   window.addEventListener('orientationchange',function(){setTimeout(fit,300)});
   window.addEventListener('pageshow',fit);
