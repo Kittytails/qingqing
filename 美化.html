@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F7F9">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+<script>
+(function(){var r=document.documentElement,m=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)');
+function set(){var d=!!(m&&m.matches);r.setAttribute('data-theme',d?'dark':'light');r.style.colorScheme=d?'dark':'light';}
+set();if(m&&m.addEventListener)m.addEventListener('change',set);})();
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Appearance</title>
+<style>
+:root{
+  --bg:#F7F7F9; --card:#FFFFFF; --ink:#000000; --muted:#8E8E93; --sub:#6C6C70;
+  --sep:rgba(60,60,67,.16); --fill:#EDEDF0; --ctl-line:rgba(60,60,67,.14); --press:rgba(60,60,67,.08);
+  --track:#E5E5EA; --on:#111111; --on-ink:#FFFFFF; --ring:#111111; --glyph:#F0F0F2; --chev:#C4C4C9;
+  --sheet:rgba(248,248,250,.80); --sheet-line:rgba(60,60,67,.12); --fog:247,247,249; --bar:rgba(255,255,255,.6); --bar-line:rgba(255,255,255,.6); --bar-shadow:0 -6px 24px rgba(0,0,0,.05); --done-press:#333;
+  --t-bg:#1D1D1F; --t-fg:#F5F5F7; --t-ok:#34C759; --t-ok-bg:rgba(52,199,89,.20);
+  --t-err:#FF6B60; --t-err-bg:rgba(255,107,96,.20); --t-info:#64A8FF; --t-info-bg:rgba(100,168,255,.20); --t-dot:rgba(255,255,255,.14);
+}
+html[data-theme="dark"]{
+  --bg:#000000; --card:#1C1C1E; --ink:#F5F5F7; --muted:#8E8E93; --sub:#AEAEB2;
+  --sep:rgba(255,255,255,.12); --fill:#2C2C2E; --ctl-line:rgba(255,255,255,.14); --press:rgba(255,255,255,.08);
+  --track:#3A3A3C; --on:#F5F5F7; --on-ink:#000000; --ring:#F5F5F7; --glyph:#2C2C2E; --chev:#58585D;
+  --sheet:rgba(30,30,32,.82); --sheet-line:rgba(255,255,255,.10); --fog:0,0,0; --bar:rgba(28,28,30,.62); --bar-line:rgba(255,255,255,.08); --bar-shadow:0 -6px 24px rgba(0,0,0,.35); --done-press:#D1D1D6;
+  --t-bg:#F5F5F7; --t-fg:#1D1D1F; --t-ok:#1FA64A; --t-ok-bg:rgba(31,166,74,.16);
+  --t-err:#E5382E; --t-err-bg:rgba(229,56,46,.14); --t-info:#2F7DE1; --t-info-bg:rgba(47,125,225,.14); --t-dot:rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","PingFang SC","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;touch-action:manipulation}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.scroll{height:100%;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:calc(28px + env(safe-area-inset-top)) max(16px,calc((100% - 520px)/2)) calc(92px + env(safe-area-inset-bottom))}
+.scroll::-webkit-scrollbar{display:none}
+
+/* 大标题 */
+.large-title{font-size:38px;line-height:44px;font-weight:700;letter-spacing:-1.2px;padding:0 4px}
+.large-title + .sec{margin-top:30px}
+.large-title{cursor:pointer;transition:opacity .15s;width:fit-content}
+.large-title:active{opacity:.45}
+
+/* 分区 */
+.sec{margin-top:40px}
+.sec-label{font-size:13px;line-height:18px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);padding:0 18px 12px}
+.sec-foot{padding:12px 18px 0;font-size:12.5px;line-height:17px;color:var(--muted)}
+.group{background:var(--card);border-radius:28px;overflow:hidden}
+.group + .group{margin-top:26px}
+.group > *{position:relative}
+.group > *{position:relative}
+
+.group > * + *::before,.font-item::before,.plan-row::before,.empty::before{content:"";position:absolute;top:0;left:18px;right:20px;height:1px;background:var(--sep);pointer-events:none}
+.group > .has-glyph::before{left:64px}
+.group > .strip::before,.group > .app-list::before,.group > .dl-row::before,.group > #fontList::before,.group > #planList::before{display:none}
+
+/* 行 */
+.row{display:flex;align-items:center;gap:15px;width:100%;min-height:62px;padding:14px 18px;text-align:left;background:none;border:0;color:inherit;font:inherit}
+.tap{cursor:pointer;transition:background .15s}
+.tap:active{background:var(--press)}
+.glyph{flex:none;width:33px;height:33px;border-radius:11px;background:var(--glyph);color:var(--ink);display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:-.3px}
+.glyph svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.row-main{min-width:0;flex:1}
+.row-title{display:block;font-size:17px;line-height:23px;font-weight:500;letter-spacing:-.3px}
+.row-desc{display:block;margin-top:3px;font-size:12px;line-height:17px;color:var(--muted)}
+.chev{flex:none;width:8px;height:14px;margin:0 2px 0 12px;opacity:.45;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%23888' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 1.5 6.5 7l-5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
+.tap:active .chev{opacity:.9}
+#bgHistoryRow{padding-top:14px;padding-bottom:6px}
+
+/* 按钮 */
+.btn{flex:1;min-width:0;height:40px;display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:var(--fill);color:var(--ink);border-radius:12px;font-size:14px;font-weight:500;white-space:nowrap;transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn.primary{background:var(--on);color:var(--on-ink)}
+.small-btn{height:30px;padding:0 14px;display:flex;align-items:center;justify-content:center;border:0;background:var(--fill);color:var(--ink);border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap;transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+.small-btn:active{transform:scale(.95);opacity:.85}
+.small-btn.dark{background:var(--on);color:var(--on-ink)}
+.text-btn{background:none;border:0;padding:6px 4px;font-size:13px;font-weight:500;color:var(--muted)}
+.text-btn:active{opacity:.5}
+
+/* 纯色 */
+.color-line{display:flex;align-items:center;gap:10px}
+.color-input{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:0;border-radius:50%;padding:0;background:none;overflow:hidden;box-shadow:0 0 0 1px var(--ctl-line)}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:0;border-radius:50%}
+.color-input::-moz-color-swatch{border:0;border-radius:50%}
+.hex{width:84px;height:32px;border:0;border-radius:10px;padding:0 8px;background:var(--fill);color:var(--ink);font-size:13px;font-weight:500;text-transform:uppercase;text-align:center;outline:none}
+.hex:focus{box-shadow:0 0 0 1.5px var(--ink)}
+
+/* 横向色块 / 背景缩略图 */
+.strip{display:flex;gap:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 20px 22px}
+.strip::-webkit-scrollbar{display:none}
+.swatch{flex:none;width:34px;height:34px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 1px var(--ctl-line);transition:box-shadow .2s}
+.swatch.active{box-shadow:0 0 0 2.5px var(--card),0 0 0 4.5px var(--ring)}
+.bg-thumb{flex:none;width:48px;height:68px;border-radius:10px;cursor:pointer;background-size:cover;background-position:center;background-repeat:no-repeat;box-shadow:0 0 0 1px var(--ctl-line);transition:box-shadow .2s}
+.bg-thumb.active{box-shadow:0 0 0 2.5px var(--card),0 0 0 4.5px var(--ring)}
+
+/* 字体列表 */
+.font-item{position:relative;display:flex;align-items:center;gap:10px;min-height:62px;padding:14px 18px;cursor:pointer;transition:background .15s}
+.font-item:active{background:var(--press)}
+.font-preview{flex:1;min-width:0;font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.check{flex:none;width:20px;height:20px;color:var(--ink);visibility:hidden}
+.check svg{width:20px;height:20px;display:block}
+.font-item.on .check{visibility:visible}
+
+/* iOS 开关 */
+.ios-switch{position:relative;flex:none;width:51px;height:31px}
+.ios-switch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer;z-index:1}
+.ios-track{position:absolute;inset:0;background:var(--track);border-radius:999px;transition:background .2s ease}
+.ios-track::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.22);transition:transform .2s cubic-bezier(.22,.8,.2,1),background .2s}
+.ios-switch input:checked + .ios-track{background:var(--on)}
+.ios-switch input:checked + .ios-track::after{transform:translateX(20px);background:var(--on-ink);box-shadow:none}
+
+/* 图标网格：四列，像桌面 */
+.toolbar{display:flex;gap:12px;padding:18px 18px 16px}
+.dl-row{display:flex;align-items:center;gap:12px;margin:0 18px 16px;padding:12px 14px;background:var(--fill);border-radius:16px}
+.dl-row-main{min-width:0;flex:1}
+.dl-row-title{font-size:13px;font-weight:500;color:var(--ink)}
+.dl-row-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
+.app-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 18px 20px}
+.app-item{display:flex;flex-direction:column;align-items:center;border:1px solid var(--fill);border-radius:16px;background:var(--bg);position:relative;transition:all .2s;overflow:hidden}
+.app-item-inner{padding:20px 12px;width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer}
+.app-item:active .app-item-inner{background:var(--press)}
+.app-thumb{width:56px;height:56px;border-radius:16px;background:var(--card);border:1px solid var(--ctl-line);display:grid;place-items:center;overflow:hidden;flex-shrink:0;font-size:12px;color:var(--muted);font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.02)}
+.app-thumb img{width:100%;height:100%;object-fit:cover}
+.app-name{font-size:14px;font-weight:500;color:var(--ink);transition:.2s}
+.app-link-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.app-link-btn{position:absolute;top:9px;right:9px;width:30px;height:30px;border-radius:50%;background:var(--card);border:1px solid var(--ctl-line);display:grid;place-items:center;padding:0;color:var(--ink);cursor:pointer;transition:all .18s;box-shadow:0 2px 7px rgba(0,0,0,.06);z-index:20;pointer-events:auto;-webkit-appearance:none;appearance:none}
+.app-link-btn:active{transform:scale(.92);background:var(--fill)}
+
+/* 主题方案 */
+.plan-row{position:relative;display:flex;align-items:center;gap:12px;min-height:70px;padding:14px 18px}
+.plan-info{flex:1;min-width:0}
+.plan-name{font-size:16px;line-height:22px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plan-time{margin-top:1px;font-size:12px;color:var(--muted)}
+.plan-actions{display:flex;gap:8px;flex:none}
+.empty::before{display:none}
+.empty{position:relative;padding:28px 18px;text-align:center;color:var(--muted);font-size:13px}
+
+/* 底部：磨砂玻璃栏 + 圆角矩形按钮 */
+.bottom{z-index:50;position:fixed;left:0;right:0;bottom:0;padding:8px max(20px,calc((100% - 520px)/2)) calc(2px + env(safe-area-inset-bottom));background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(28px);backdrop-filter:saturate(180%) blur(28px);border-top:1px solid var(--bar-line);box-shadow:var(--bar-shadow)}
+.done{width:100%;height:52px;border:0;border-radius:16px;background:var(--on);color:var(--on-ink);font-size:15px;font-weight:600;letter-spacing:1px;transition:.2s;cursor:pointer}
+.done:active{transform:scale(.98);background:var(--done-press)}
+
+/* 底部弹层 */
+.sheet-modal{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.18);-webkit-backdrop-filter:blur(12px) saturate(115%);backdrop-filter:blur(12px) saturate(115%)}
+.sheet-modal.show{display:flex}
+.sheet{width:100%;max-width:560px;background:var(--sheet);border:1px solid var(--sheet-line);border-bottom:0;border-radius:30px 30px 0 0;padding:24px 20px calc(20px + env(safe-area-inset-bottom));-webkit-backdrop-filter:blur(28px) saturate(145%);backdrop-filter:blur(28px) saturate(145%);box-shadow:0 -18px 55px rgba(0,0,0,.12);animation:sheetIn .28s cubic-bezier(.22,1,.36,1)}
+@keyframes sheetIn{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+.sheet-title{font-size:18px;font-weight:600;letter-spacing:-.3px;margin-bottom:14px}
+.sheet-input{width:100%;height:48px;border:0;border-radius:12px;padding:0 14px;background:var(--fill);color:var(--ink);font-size:15px;outline:none;transition:box-shadow .2s}
+.sheet-input:focus{box-shadow:0 0 0 1.5px var(--ink)}
+.sheet-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:9px;margin-top:14px}
+.sheet-actions button{height:46px;border-radius:12px;border:0;background:var(--fill);color:var(--ink);font-size:14px;font-weight:500}
+.sheet-actions .sheet-ok{background:var(--on);color:var(--on-ink)}
+.sheet-actions button:active{opacity:.85}
+
+/* 顶部提示 */
+.toast{position:fixed;left:18px;right:18px;top:calc(env(safe-area-inset-top) + 56px);display:none;justify-content:center;pointer-events:none;z-index:500;text-align:center}
+.toast-sheet{box-sizing:border-box;max-width:min(100%,446px);display:flex;align-items:flex-start;gap:9px;min-height:38px;padding:8px 14px;background:var(--t-bg);color:var(--t-fg);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);font-size:13px;font-weight:700;letter-spacing:-.2px;text-align:left;overflow-wrap:anywhere;word-break:break-word;transform:translateY(calc(-100% - 16px));opacity:0;transition:transform .28s cubic-bezier(.4,0,1,1),opacity .22s ease-in}
+.toast.show .toast-sheet{transform:none;opacity:1;transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .2s ease-out}
+.toast-sheet.swap .toast-dot,.toast-sheet.swap .toast-msg{animation:toastSwap .28s ease-out}
+@keyframes toastSwap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast-dot{flex:none;width:22px;height:22px;border-radius:50%;background:var(--t-dot);display:flex;align-items:center;justify-content:center}
+.toast-dot svg{width:13px;height:13px}
+.toast-dot svg path{stroke:currentColor}
+.toast-msg{min-width:0;line-height:22px}
+.toast-sheet[data-type="ok"] .toast-dot{color:var(--t-ok);background:var(--t-ok-bg)}
+.toast-sheet[data-type="error"] .toast-dot{color:var(--t-err);background:var(--t-err-bg)}
+.toast-sheet[data-type="info"] .toast-dot{color:var(--t-info);background:var(--t-info-bg)}
+.spinner{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.toast-sheet,.toast.show .toast-sheet{transition:opacity .15s linear}.toast-sheet{transform:none}}
+</style>
+</head>
+<body>
+<main class="scroll"><div class="wrap">
+
+<h1 class="large-title" id="pageTitle" role="button" tabindex="0">Appearance</h1>
+
+<!-- Background -->
+<section class="sec">
+  <div class="sec-label">Background</div>
+  <div class="group">
+    <label class="row has-glyph tap">
+      <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/></svg></span>
+      <span class="row-main"><span class="row-title">本地图片</span></span>
+      <span class="chev"></span>
+      <input id="bgFile" style="display:none" type="file" accept="image/*">
+    </label>
+    <button type="button" class="row has-glyph tap" id="bgUrlBtn">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M3.9 12h16.2M12 3.8c2 2.25 3 5 3 8.2s-1 5.95-3 8.2M12 3.8c-2 2.25-3 5-3 8.2s1 5.95 3 8.2"/></svg></span>
+      <span class="row-main"><span class="row-title">网络链接</span></span>
+      <span class="chev"></span>
+    </button>
+    <div class="row has-glyph" id="bgHistoryRow" style="display:none">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg></span>
+      <div class="row-main"><span class="row-title">历史背景</span><span class="row-desc">长按删除</span></div>
+    </div>
+    <div id="savedBgs" class="strip"></div>
+  </div>
+
+  <div class="group">
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/></svg></span>
+      <div class="row-main"><span class="row-title">纯色背景</span></div>
+      <div class="color-line"><input id="colorInput" class="color-input" type="color"><input id="hexInput" class="hex" value="#FFFFFF" maxlength="7"></div>
+    </div>
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="8.5" cy="9" r="2.4"/><circle cx="15.5" cy="9" r="2.4"/><circle cx="12" cy="15.5" r="2.4"/></svg></span>
+      <div class="row-main"><span class="row-title">常用颜色</span></div>
+      <button class="small-btn dark" id="saveColor">保存当前</button>
+    </div>
+    <div id="swatches" class="strip"></div>
+  </div>
+</section>
+
+<!-- Typography -->
+<section class="sec">
+  <div class="sec-label">Typography</div>
+  <div class="group">
+    <label class="row has-glyph tap">
+      <span class="glyph">Aa</span>
+      <span class="row-main"><span class="row-title">导入字体</span></span>
+      <span class="chev"></span>
+      <input id="fontFile" style="display:none" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2">
+    </label>
+    <div id="fontList"></div>
+  </div>
+</section>
+
+<!-- App Icons -->
+<section class="sec">
+  <div class="sec-label">App Icons</div>
+  <div class="group">
+    <div class="toolbar">
+      <label class="btn primary">批量上传本地<input id="bulkUpload" type="file" multiple accept="image/*" style="display:none"></label>
+    </div>
+    <div class="dl-row">
+      <div class="dl-row-main"><div class="dl-row-title">上传时自动转直链</div></div>
+      <label class="ios-switch"><input type="checkbox" id="useDirectLink"><span class="ios-track"></span></label>
+    </div>
+    <div id="appList" class="app-list"></div>
+  </div>
+  </section>
+
+<!-- Themes -->
+<section class="sec">
+  <div class="sec-label">Themes</div>
+  <div class="group">
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><path d="M7 4.5h10v15l-5-3.6-5 3.6z"/></svg></span>
+      <div class="row-main"><span class="row-title">保存当前配置</span></div>
+      <button class="small-btn dark" id="savePlanBtn">保存</button>
+    </div>
+    <div id="planList"></div>
+  </div>
+</section>
+
+</div></main>
+
+<div class="sheet-modal" id="urlModal"><div class="sheet">
+  <div class="sheet-title">添加网络背景</div>
+  <input id="urlInput" class="sheet-input" type="url" inputmode="url" placeholder="粘贴图片链接">
+  <div class="sheet-actions"><button type="button" id="urlCancel">取消</button><button type="button" class="sheet-ok" id="urlApply">应用</button></div>
+</div></div>
+
+<div class="sheet-modal" id="nameModal"><div class="sheet">
+  <div class="sheet-title">方案名称</div>
+  <input id="nameInput" class="sheet-input" type="text" maxlength="24" placeholder="给当前方案取个名字" autocomplete="off">
+  <div class="sheet-actions"><button type="button" id="nameCancel">取消</button><button type="button" class="sheet-ok" id="nameOk">保存</button></div>
+</div></div>
+
+<div class="bottom"><button class="done" id="doneBtn">完成并保存</button></div>
+<div id="toast" class="toast"><div class="toast-sheet" data-type="ok"><span class="toast-dot"></span><span class="toast-msg"></span></div></div>
+
+<script>
+(()=>{
+const KEY='phoneTheme', PLANS='phoneThemePlans', COLORS='phoneSavedColors', BGS='phoneSavedBgs';
+const baseFonts=[{id:'system',name:'系统默认',stack:'-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC",sans-serif'}];
+const DEFAULT_APPS=['微信','世界书','档案','设置','倒数日','美化','直链','仓库','短信','浏览器','电话','此刻'];
+// 小手机会把桌面上所有 App 的名字存在 xsj_app_names，这里跟它保持一致；没有时用默认名单
+function phoneAppNames(){try{const a=JSON.parse(localStorage.getItem('xsj_app_names')||'null');if(Array.isArray(a)){const r=a.filter(x=>typeof x==='string'&&x);if(r.length)return r}}catch(e){}return[...DEFAULT_APPS]}
+const apps=phoneAppNames();
+const $=id=>document.getElementById(id);
+
+let theme=read(KEY,{bgColor:'#ffffff',wallpaperCSS:'none',fontId:'system',font:baseFonts[0].stack,customFonts:[],appIcons:{},appsOrder:null,savedColors:[]});
+let colors=read(COLORS,theme.savedColors||[]); 
+let savedBgs=read(BGS,[]);
+let plans=read(PLANS,[]);
+let currentApps = [...apps];
+
+function read(k,d){try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){if(e.name==='QuotaExceededError') toast('存储空间不足，这次改动没保存成功，删掉几张旧图片/背景再试试~');return false}}
+
+// 顶部提示：ok / error / info 三种图标，样式同「直链」
+const TOAST_ICONS={
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  error:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5v7M12 17.5h.01"/></svg>',
+  info:'<span class="spinner"></span>'
+};
+function toast(s){
+  const t=$('toast'), sheet=t.firstElementChild, dot=sheet.querySelector('.toast-dot'), msg=sheet.querySelector('.toast-msg');
+  const type=/失败|不足|错误|请输入/.test(s)?'error':(/^正在/.test(s)?'info':'ok');
+  const wasShown=t.classList.contains('show');
+  sheet.dataset.type=type; dot.innerHTML=TOAST_ICONS[type]; msg.textContent=s;
+  clearTimeout(toast._t); clearTimeout(toast._h);
+  t.style.display='flex';
+  if(wasShown){sheet.classList.remove('swap');void sheet.offsetWidth;sheet.classList.add('swap')}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  const dur=type==='info'?20000:Math.max(1500,Math.min(4200,s.length*70));
+  toast._t=setTimeout(()=>{t.classList.remove('show');toast._h=setTimeout(()=>{t.style.display='none'},450)},dur);
+}
+function sync(){theme.appsOrder = currentApps; let ok=write(KEY,theme); ok=write(COLORS,colors)&&ok; ok=write(BGS,savedBgs)&&ok; try{window.dispatchEvent(new Event('phoneThemeSync')); if(window.opener)window.opener.postMessage({type:'phoneThemeSync'},'*'); if(window.parent&&window.parent!==window)window.parent.postMessage({type:'phoneThemeSync'},'*');}catch(e){} return ok;}
+
+// ===== 直链集成：把图标改上传到「直链」里配置好的 GitHub 仓库，换成一个网址，
+// 而不是把图片编码成又大又占地方的 base64 塞进 localStorage（这才是"存储空间不足"的根源）。
+// 直接复用"直链"App自己保存Token/仓库名用的那几个localStorage键，两边配置是通的，不用重新填一遍。
+const DL_TOKEN_PREF='useDirectLinkForIcons';
+$('useDirectLink').checked = localStorage.getItem(DL_TOKEN_PREF)==='1';
+$('useDirectLink').onchange=()=>{localStorage.setItem(DL_TOKEN_PREF, $('useDirectLink').checked?'1':'0')};
+
+function dlSettings(){
+  return {
+    token:(localStorage.getItem('kb_standalone_token')||'').trim(),
+    repo:(localStorage.getItem('kb_standalone_repo')||'').trim()||'kittytail-assets',
+    proxy:(localStorage.getItem('kb_standalone_proxy')||'').trim().replace(/\/+$/,'')
+  };
+}
+async function ghRequest(path,options,token,proxy){
+  const base=proxy||'https://api.github.com';
+  const res=await fetch(base+path,{...options,headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',...((options&&options.headers)||{})},cache:'no-store'});
+  const text=await res.text();let data={};try{data=text?JSON.parse(text):{}}catch(e){data={message:text}}
+  if(!res.ok) throw new Error(data.message||('HTTP '+res.status));
+  return data;
+}
+function dlSafeName(name){
+  name=String(name||'icon');
+  const dot=name.lastIndexOf('.');
+  let stem=dot>=0?name.slice(0,dot):name, ext=dot>=0?name.slice(dot):'.jpg';
+  stem=stem.replace(/[^\w.\-\u4e00-\u9fff]+/g,'-').replace(/^[-.]+|[-.]+$/g,'')||('icon-'+Date.now());
+  ext=ext.replace(/[^\w.]/g,'')||'.jpg';
+  return stem+ext;
+}
+function dlCdnUrl(owner,repo,branch,path){
+  return 'https://cdn.jsdelivr.net/gh/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'@'+encodeURIComponent(branch)+'/'+path.split('/').map(encodeURIComponent).join('/');
+}
+// dataUrl: 已经是 data:image/...;base64,... 或字体的 data:font/...;base64,... 字符串；filename仅用于生成文件名；isImage决定存到images/还是fonts/目录
+async function uploadAssetToDirectLink(dataUrl, filename, isImage){
+  const s=dlSettings();
+  if(!s.token) throw new Error('还没在「直链」里配置 GitHub Token');
+  const user=await ghRequest('/user',{method:'GET'},s.token,s.proxy);
+  const owner=user.login;
+  let branch='main';
+  try{
+    const repoData=await ghRequest('/repos/'+owner+'/'+s.repo,{method:'GET'},s.token,s.proxy);
+    branch=repoData.default_branch||'main';
+  }catch(e){
+    if(/404|Not Found/i.test(e.message||'')){
+      const created=await ghRequest('/user/repos',{method:'POST',body:JSON.stringify({name:s.repo,auto_init:true})},s.token,s.proxy);
+      branch=created.default_branch||'main';
+    } else throw e;
+  }
+  const folder=isImage?'images':'fonts';
+  const path=folder+'/'+Date.now()+'-'+dlSafeName(filename);
+  const content=String(dataUrl).indexOf(',')>=0?String(dataUrl).split(',')[1]:String(dataUrl);
+  const encodedPath=path.split('/').map(encodeURIComponent).join('/');
+  await ghRequest('/repos/'+owner+'/'+s.repo+'/contents/'+encodedPath,{method:'PUT',body:JSON.stringify({message:'上传 '+path,content,branch})},s.token,s.proxy);
+  const url=dlCdnUrl(owner,s.repo,branch,path);
+  dlAddToHistory({name:filename,url,isImage:!!isImage,owner,repo:s.repo,branch,path});
+  return url;
+}
+// 往「直链」自己的资源库历史记录里追加一条,字段跟直链.html里 addToHistory 存的完全一致,
+// 这样打开「直链」App时,美化这边转的直链图片/字体在它的资源库列表里也能看到。
+function dlAddToHistory(e){
+  try{
+    const key='kb_standalone_history';
+    const list=JSON.parse(localStorage.getItem(key)||'[]');
+    list.unshift({
+      id:Date.now()+'-'+Math.random().toString(36).slice(2),
+      name:e.name,url:e.url,isImage:!!e.isImage,isFont:!e.isImage,time:Date.now(),
+      githubOwner:e.owner||'',githubRepo:e.repo||'',githubBranch:e.branch||'',githubPath:e.path||''
+    });
+    localStorage.setItem(key,JSON.stringify(list));
+  }catch(err){}
+}
+
+// 色块处理
+function applyColor(c){theme.bgColor=c;theme.wallpaperCSS='none';sync();$('colorInput').value=c;$('hexInput').value=c;renderSwatches();renderSavedBgs();}
+$('colorInput').value=theme.bgColor||'#ffffff';$('hexInput').value=theme.bgColor||'#ffffff';
+$('colorInput').oninput=e=>applyColor(e.target.value);$('hexInput').onchange=e=>{let v=e.target.value.trim();if(/^[0-9a-fA-F]{6}$/.test(v))v='#'+v;if(/^#[0-9a-fA-F]{6}$/.test(v))applyColor(v.toLowerCase());else $('hexInput').value=$('colorInput').value};$('saveColor').onclick=()=>{let c=theme.bgColor;if(!colors.includes(c))colors.unshift(c);colors=colors.slice(0,18);if(sync())toast('颜色已保存');renderSwatches();};
+
+function renderSwatches(){
+  let box=$('swatches');box.innerHTML='';
+  if(!colors.length){ box.style.display='none'; return; } else { box.style.display='flex'; }
+  colors.forEach(c=>{
+    let b=document.createElement('div');b.className='swatch'+(theme.bgColor===c?' active':'');b.style.background=c;b.title=c;
+    let longPressTimer;
+    const startPress = () => { longPressTimer = setTimeout(()=>{ colors = colors.filter(x=>x!==c); sync(); renderSwatches(); toast('已删除该颜色'); }, 500); };
+    const cancelPress = () => { clearTimeout(longPressTimer); };
+    b.addEventListener('touchstart', startPress, {passive: true}); b.addEventListener('touchmove', cancelPress, {passive: true}); b.addEventListener('touchend', cancelPress); b.addEventListener('touchcancel', cancelPress);
+    b.addEventListener('mousedown', startPress); b.addEventListener('mouseup', cancelPress); b.addEventListener('mouseleave', cancelPress);
+    b.onclick = () => applyColor(c);
+    box.appendChild(b);
+  })
+}
+
+// 历史背景图处理
+function renderSavedBgs(){
+  let box=$('savedBgs');box.innerHTML='';
+  if(!savedBgs.length){ $('bgHistoryRow').style.display='none'; box.style.display='none'; return; } 
+  else { $('bgHistoryRow').style.display='flex'; box.style.display='flex'; }
+  
+  savedBgs.forEach(bg=>{
+    let b=document.createElement('div');
+    b.className='bg-thumb'+(theme.wallpaperCSS===bg?' active':'');
+    b.style.backgroundImage=bg;
+    let longPressTimer;
+    const startPress = () => { longPressTimer = setTimeout(()=>{ savedBgs = savedBgs.filter(x=>x!==bg); sync(); renderSavedBgs(); toast('已删除该背景图'); }, 500); };
+    const cancelPress = () => { clearTimeout(longPressTimer); };
+    b.addEventListener('touchstart', startPress, {passive: true}); b.addEventListener('touchmove', cancelPress, {passive: true}); b.addEventListener('touchend', cancelPress); b.addEventListener('touchcancel', cancelPress);
+    b.addEventListener('mousedown', startPress); b.addEventListener('mouseup', cancelPress); b.addEventListener('mouseleave', cancelPress);
+    b.onclick = () => { theme.wallpaperCSS=bg; theme.bgColor=''; sync(); renderSavedBgs(); renderSwatches(); toast('背景已应用'); };
+    box.appendChild(b);
+  })
+}
+
+$('bgFile').onchange=e=>{
+  let f=e.target.files[0];if(!f)return;
+  const useDL=$('useDirectLink').checked;
+  compressImage(f,1170,0.82).then(async compressed=>{
+    if(!compressed){toast('图片读取失败，换一张试试');return}
+    let finalSrc=compressed, viaDL=false;
+    if(useDL){
+      try{ finalSrc=await uploadAssetToDirectLink(compressed, f.name, true); viaDL=true; }
+      catch(err){ toast('壁纸转直链失败（'+(err.message||'未知错误')+'），已改存本地压缩图'); }
+    }
+    let bgCss = 'url("'+finalSrc+'")';
+    theme.wallpaperCSS=bgCss; theme.backgroundName=f.name; theme.bgColor='';
+    if(!savedBgs.includes(bgCss)){ savedBgs.unshift(bgCss); savedBgs = savedBgs.slice(0, 4); }
+    renderSavedBgs(); renderSwatches(); if(sync())toast(viaDL?'自定义背景已转直链并保存':'自定义背景已应用并保存');
+  });
+  e.target.value='';
+};
+
+const urlModal=$('urlModal'), urlInput=$('urlInput'), urlTitle=urlModal.querySelector('.sheet-title');
+let urlMode='background';
+let urlTargetApp='';
+function openUrlModal(mode, appName=''){
+  urlMode=mode; urlTargetApp=appName;
+  urlTitle.textContent=mode==='app' ? `设置「${appName}」网络图标` : '添加网络背景';
+  urlInput.value=''; urlInput.placeholder='粘贴图片链接';
+  urlModal.classList.add('show');
+  setTimeout(()=>urlInput.focus(),80);
+}
+function closeUrlModal(){urlModal.classList.remove('show');urlInput.value='';urlTargetApp='';}
+$('bgUrlBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openUrlModal('background')});
+$('urlCancel').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeUrlModal()});
+$('urlModal').addEventListener('click',e=>{if(e.target===urlModal)closeUrlModal()});
+$('urlApply').addEventListener('click',e=>{
+  e.preventDefault(); e.stopPropagation();
+  const url=urlInput.value.trim();
+  if(!/^https?:\/\//i.test(url)){toast('请输入正确的图片链接');return}
+  if(urlMode==='app'){
+    theme.appIcons=theme.appIcons||{};
+    theme.appIcons[urlTargetApp]=url;
+    renderApps(); closeUrlModal(); if(sync())toast(urlTargetApp+' 网络图标已保存并同步');
+    return;
+  }
+  const bgCss='url("'+url.replace(/"/g,'\\"')+'")';
+  theme.wallpaperCSS=bgCss; theme.backgroundName='网络图片'; theme.bgColor='';
+  if(!savedBgs.includes(bgCss)){savedBgs.unshift(bgCss);savedBgs=savedBgs.slice(0,4)}
+  renderSavedBgs();renderSwatches();closeUrlModal();if(sync())toast('网络背景图已应用并同步');
+});
+
+// 字体处理
+function fonts(){return [...baseFonts,...(theme.customFonts||[])]}
+const CHECK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function renderFonts(){
+  let box=$('fontList');box.innerHTML='';
+  fonts().forEach(f=>{
+    let row=document.createElement('div');row.className='font-item'+(theme.fontId===f.id?' on':'');
+    let p=document.createElement('span');p.className='font-preview';p.style.fontFamily=f.stack;p.textContent=f.name+' · Aa 汉字';
+    row.appendChild(p);
+    if(f.custom){
+      let del=document.createElement('button');del.type='button';del.className='text-btn';del.textContent='删除';
+      del.onclick=e=>{e.stopPropagation();theme.customFonts=theme.customFonts.filter(x=>x.id!==f.id);if(theme.fontId===f.id){theme.fontId='system';theme.font=baseFonts[0].stack}sync();renderFonts()};
+      row.appendChild(del);
+    }
+    let chk=document.createElement('span');chk.className='check';chk.innerHTML=CHECK_SVG;row.appendChild(chk);
+    row.onclick=()=>{theme.fontId=f.id;theme.font=f.stack;sync();renderFonts();toast('字体已应用')};
+    box.appendChild(row);
+  })
+}
+
+
+$('fontFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=async ev=>{
+  let id='font_'+Date.now(),family='UserFont_'+Date.now();
+  theme.customFonts=theme.customFonts||[];
+  const useDL=$('useDirectLink').checked;
+  let fontSrc=ev.target.result, viaDL=false;
+  if(useDL){
+    try{ fontSrc=await uploadAssetToDirectLink(ev.target.result, f.name, false); viaDL=true; }
+    catch(err){ toast('字体转直链失败（'+(err.message||'未知错误')+'），已改存本地'); }
+  }
+  theme.customFonts.push({id,name:f.name,stack:'"'+family+'",sans-serif',family,data:fontSrc,custom:true});
+  theme.fontId=id;theme.font='"'+family+'",sans-serif';
+  let ok=sync();injectFonts();renderFonts();
+  if(ok)toast(viaDL?'字体已转直链并应用':'字体已导入并应用');
+};r.readAsDataURL(f);e.target.value=''};
+function injectFonts(){document.querySelectorAll('[data-user-font]').forEach(x=>x.remove());(theme.customFonts||[]).forEach(f=>{if(!f.data)return;let s=document.createElement('style');s.dataset.userFont='1';s.textContent='@font-face{font-family:"'+f.family+'";src:url("'+f.data+'")}';document.head.appendChild(s)})}injectFonts();
+
+// APP图标处理
+
+
+// 压缩图片:限制最长边尺寸+转成JPEG压缩质量,能把手机原图(动辄几MB)
+// 压到几十到一两百KB,同样的localStorage配额能多存好几倍的图标/背景。
+function compressImage(file, maxDim, quality){
+  return new Promise(resolve=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if(w > maxDim || h > maxDim){
+          if(w >= h){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        // 先铺白底,避免带透明通道的图压成JPEG后透明区域变黑
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img,0,0,w,h);
+        try{ resolve(canvas.toDataURL('image/jpeg', quality)); }
+        catch(err){ resolve(e.target.result); }
+      };
+      img.onerror = ()=> resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = ()=> resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+$('bulkUpload').onchange = async (ev) => {
+    let files = Array.from(ev.target.files);
+    if (!files.length) return;
+    const useDL = $('useDirectLink').checked;
+    toast(useDL ? '正在批量处理并转直链...' : '正在批量处理...');
+    theme.appIcons = theme.appIcons || {};
+    let dlFailCount = 0, dlFailReason = '';
+    const stem = f => f.name.replace(/\.[^/.]+$/, "");
+    const assigned = new Map(), used = new Set();
+    currentApps.forEach(name => {
+        const f = files.find(x => !used.has(x) && stem(x) === name);
+        if (f) { used.add(f); assigned.set(name, f); }
+    });
+    const rest = files.filter(f => !used.has(f));
+    currentApps.forEach(name => { if (!assigned.has(name) && rest.length) assigned.set(name, rest.shift()); });
+    for (const [name, file] of assigned) {
+        const compressed = await compressImage(file, 240, 0.85);
+        if (!compressed) continue;
+        if (useDL) {
+            try { theme.appIcons[name] = await uploadAssetToDirectLink(compressed, name + ".jpg", true); }
+            catch (err) { dlFailCount++; dlFailReason = err.message || '未知错误'; theme.appIcons[name] = compressed; }
+        } else {
+            theme.appIcons[name] = compressed;
+        }
+    }
+    renderApps();
+    const ok = sync();
+    if (dlFailCount) toast(dlFailCount + ' 张转直链失败（' + dlFailReason + '），已改存本地');
+    else if (ok) toast(useDL ? '批量上传完成，已转为直链' : '批量上传完成');
+    ev.target.value = '';
+};
+
+function renderApps(){
+  let box=$('appList');box.innerHTML='';
+  currentApps.forEach((name, i)=>{
+    let item=document.createElement('div');item.className='app-item';
+    
+    // 图标和文字包裹
+    let lab=document.createElement('div'); lab.className='app-item-inner';
+    let thumb=document.createElement('div');thumb.className='app-thumb';
+    if(theme.appIcons&&theme.appIcons[name]){let im=document.createElement('img');im.src=theme.appIcons[name];thumb.appendChild(im)}else thumb.textContent=name.slice(0,2);
+    let main=document.createElement('div'); main.className='app-name'; main.textContent=name;
+    let input=document.createElement('input');input.type='file';input.accept='image/*';input.style.display='none';
+    input.onchange=async ev=>{
+      let f=ev.target.files[0];if(!f)return;
+      const compressed = await compressImage(f, 240, 0.85);
+      if(!compressed){toast('图片读取失败，换一张试试');return}
+      theme.appIcons=theme.appIcons||{};
+      const useDL = $('useDirectLink').checked;
+      if(useDL){
+        try{
+          theme.appIcons[name]=await uploadAssetToDirectLink(compressed, name+'.jpg', true);
+        }catch(err){
+          theme.appIcons[name]=compressed;
+          renderApps(); sync();
+          toast('转直链失败（'+(err.message||'未知错误')+'），已改存本地');
+          return;
+        }
+      } else {
+        theme.appIcons[name]=compressed;
+      }
+      let ok=sync();renderApps();if(ok)toast(name+(useDL?' 直链已保存并同步':' 图标已保存并同步'));
+    };
+    lab.append(thumb, main, input);
+    lab.addEventListener('click',e=>{if(e.target===lab||e.target===thumb||e.target===main)input.click()});
+
+    let linkBtn=document.createElement('button'); linkBtn.type='button'; linkBtn.className='app-link-btn'; linkBtn.setAttribute('aria-label',name+'网络图标');
+    linkBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.9 12h16.2M12 3.8c2 2.25 3 5 3 8.2s-1 5.95-3 8.2M12 3.8c-2 2.25-3 5-3 8.2s1 5.95 3 8.2" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/></svg>';
+    linkBtn.addEventListener('click',e=>{
+      e.preventDefault(); e.stopPropagation();
+      openUrlModal('app',name);
+    });
+
+    item.append(lab, linkBtn);
+    box.appendChild(item);
+  })
+}
+
+// 方案处理
+function currentSnapshot(){return JSON.parse(JSON.stringify({bgColor:theme.bgColor,wallpaperCSS:theme.wallpaperCSS,backgroundName:theme.backgroundName,fontId:theme.fontId,font:theme.font,customFonts:theme.customFonts||[],appIcons:theme.appIcons||{},appsOrder:theme.appsOrder||[]}))}
+function renderPlans(){let box=$('planList');box.innerHTML='';if(!plans.length){box.innerHTML='<div class="empty">还没有保存主题方案</div>';return}plans.forEach((p,i)=>{let row=document.createElement('div');row.className='plan-row';row.innerHTML='<div class="plan-info"><div class="plan-name"></div><div class="plan-time"></div></div>';row.querySelector('.plan-name').textContent=p.name;row.querySelector('.plan-time').textContent=new Date(p.time).toLocaleString();let ac=document.createElement('div');ac.className='plan-actions';let use=document.createElement('button');use.className='small-btn dark';use.textContent='使用';use.onclick=()=>{theme=Object.assign(theme,p.data);currentApps=[...apps];$('colorInput').value=theme.bgColor||'#ffffff';$('hexInput').value=theme.bgColor||'#ffffff';let ok=sync();injectFonts();renderFonts();renderApps();renderSavedBgs();renderSwatches();if(ok)toast('方案已应用')};let del=document.createElement('button');del.className='small-btn';del.textContent='删除';del.onclick=()=>{plans.splice(i,1);write(PLANS,plans);renderPlans()};ac.append(use,del);row.append(ac);box.appendChild(row)})}
+
+// 方案命名：用底部弹层代替浏览器原生 prompt，和「网络链接」弹层同一套样式
+const nameModal=$('nameModal'), nameInput=$('nameInput');
+function openNameModal(){nameInput.value='';nameModal.classList.add('show');setTimeout(()=>nameInput.focus(),80)}
+function closeNameModal(){nameModal.classList.remove('show');nameInput.value=''}
+function savePlan(){
+  const name=nameInput.value.trim();
+  if(!name){toast('请输入方案名称');return}
+  plans.unshift({name:name.slice(0,24),time:Date.now(),data:currentSnapshot()});plans=plans.slice(0,20);
+  let ok=write(PLANS,plans);renderPlans();closeNameModal();if(ok)toast('方案已保存');
+}
+$('savePlanBtn').onclick=openNameModal;
+$('nameCancel').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeNameModal()});
+$('nameOk').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();savePlan()});
+nameModal.addEventListener('click',e=>{if(e.target===nameModal)closeNameModal()});
+nameInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();savePlan()}});
+
+$('pageTitle').addEventListener('click',()=>goBack());
+$('doneBtn').onclick=()=>{if(sync()){toast('配置已保存');setTimeout(goBack,450)}};
+function goBack(){
+  // 如果是被"小手机"外壳用 iframe 嵌进来打开的（同源），优先通知外壳把自己关掉，
+  // 而不是在 iframe 内部 history.back() / 跳转——那样只会让 iframe 自己乱跳，
+  // 关不掉外层的启动浮层。
+  if(window.parent&&window.parent!==window){
+    try{window.parent.postMessage({type:'closeApp'},'*');return}catch(e){}
+  }
+  // 只要浏览器历史里有上一页,直接用 history.back() 原路返回即可——
+  // 不需要再核对 document.referrer 里是不是"小手机.html"这几个字。
+  // 之前的问题就出在这:很多浏览器/GitHub Pages 会把 referrer 里的中文
+  // 编码成 %E5%B0%8F%E6%89%8B... 这样的形式,indexOf('小手机.html')
+  // 永远匹配不上,于是每次都被迫走"location.href='小手机.html'"这条
+  // 硬编码兜底路径,一旦当前页面所在目录/域名和预期的不完全一致就会 404。
+  if(history.length>1){
+    history.back();
+    return;
+  }
+  // 只有在没有可回退的历史记录时(比如美化页是被直接打开/刷新进来的),
+  // 才退回到拼接跳转,并且基于当前页面所在目录来拼路径,而不是写死根路径,
+  // 这样部署在子目录下也不会 404。
+  var base=location.pathname.slice(0,location.pathname.lastIndexOf('/')+1);
+  location.href=base+'小手机.html';
+}
+
+// 左滑退出（避开色块/背景缩略图的横向滚动区和弹窗）
+(function(){
+  let sx=0, sy=0, tracking=false;
+  const THRESH=70;
+  function shouldSkip(el){ return !!(el.closest('.strip') || el.closest('.sheet-modal')); }
+  document.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1 || shouldSkip(e.target)){ tracking=false; return }
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY; tracking=true;
+  }, {passive:true});
+  document.addEventListener('touchend', e=>{
+    if(!tracking) return; tracking=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(dx<-THRESH && Math.abs(dx)>Math.abs(dy)*1.5) goBack();
+  }, {passive:true});
+})();
+
+renderSwatches();renderSavedBgs();renderFonts();renderApps();renderPlans();
+
+/* ===== 底栏 / 底部弹层跟随真实可视视口修正（键盘弹出时不被挡住） ===== */
+(function fixBottomToVisualViewport(){
+  const els=[document.querySelector('.bottom'),...document.querySelectorAll('.sheet')].filter(Boolean);
+  const vv=window.visualViewport;
+  if(!els.length||!vv)return;
+  let raf=0;
+  function apply(){
+    raf=0;
+    const gap=window.innerHeight-(vv.height+vv.offsetTop);
+    els.forEach(el=>{el.style.transform=gap>1?'translateY('+(-gap)+'px)':''});
+  }
+  function schedule(){if(!raf)raf=requestAnimationFrame(apply)}
+  vv.addEventListener('resize',schedule);
+  vv.addEventListener('scroll',schedule);
+  window.addEventListener('orientationchange',()=>setTimeout(apply,300));
+  apply();
+})();
+})();
+</script>
+</body></html>
