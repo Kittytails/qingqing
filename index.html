@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-version" content="V1.6">
 <title>Orbit</title>
 <meta name="apple-mobile-web-app-title" content="Orbit">
@@ -13,6 +16,8 @@
   :root{--bg-color:#f7f7f7;--text-color:#222;--gray-color:#888;--white:#fff}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+  /* 状态栏透明后壁纸铺到顶；用 padding 把内容让开安全区，图标位置不变 */
+  body{padding-top:env(safe-area-inset-top,0px)}
   body{background:var(--bg-color);font-family:var(--app-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif);display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 
   /* ===== 编辑模式顶部胶囊 ===== */
