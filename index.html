@@ -131,10 +131,15 @@
   body.on-dark .desktop .label{color:rgba(255,255,255,.9);text-shadow:0 1px 4px rgba(0,0,0,.3)}
   .icon.has-img{background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;font-size:0}
   .folder-mini span.has-img{background-size:cover;background-position:center;background-repeat:no-repeat;color:transparent;font-size:0}
-  .app-layer{position:fixed;top:0;left:0;right:0;bottom:0;height:var(--app-h,auto);z-index:30000;display:none;background:var(--bg-color);opacity:0;transform:scale(.94);transition:opacity .26s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
+  /* 打开：从被点的图标处放大展开，内容加载完再淡入；关闭：收回到图标处 */
+  .app-layer{position:fixed;top:0;left:0;right:0;bottom:0;height:var(--app-h,auto);z-index:30000;display:none;background:var(--bg-color);overflow:hidden;
+    opacity:0;transform:scale(.18);border-radius:46px;transform-origin:50% 50%;will-change:transform,opacity;
+    transition:opacity .2s ease .12s,transform .34s cubic-bezier(.4,0,.7,.2),border-radius .34s ease}
   .app-layer.show{display:block}
-  .app-layer.open{opacity:1;transform:none}
-  .app-layer iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#f7f7f9}
+  .app-layer.open{opacity:1;transform:none;border-radius:0;
+    transition:opacity .16s ease,transform .5s cubic-bezier(.2,.9,.25,1),border-radius .5s cubic-bezier(.2,.9,.25,1)}
+  .app-layer iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;opacity:0;transition:opacity .28s ease}
+  .app-layer.loaded iframe{opacity:1}
 
   /* ===== 文件夹 ===== */
   .app.folder .icon{padding:7px}
@@ -163,24 +168,17 @@
 </style>
 <script>
 /* iOS 主屏幕 App + 透明状态栏时，页面高度(100%/innerHeight)可能比整屏少一个状态栏，
-   导致壁纸底部露白、Dock 上移、图标行距变小。这里把整屏高度补回来 */
+   这里把整屏高度补回来（正常情况下不会触发） */
 (function(){
-  var r=document.documentElement,dbg=null;
-  function lvh(){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none';document.documentElement.appendChild(d);var h=d.offsetHeight;d.remove();return h}
-  function topInset(){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;height:env(safe-area-inset-top,0px);visibility:hidden';document.documentElement.appendChild(d);var h=d.offsetHeight;d.remove();return h}
+  var r=document.documentElement;
+  function lvh(){var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none';r.appendChild(d);var h=d.offsetHeight;d.remove();return h}
   function fit(){
     var sa=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
-    var ih=window.innerHeight,iw=window.innerWidth,sh=Math.max(screen.height,screen.width),lv=lvh(),h=0;
-    if(sa&&ih>=iw){
-      h=Math.max(ih,lv);
-      if(sh>h&&sh-h<=120)h=sh;
-    }
-    r.style.setProperty('--app-h',Math.max(h,ih)+'px');
-    if(!dbg&&document.body){dbg=document.createElement('div');dbg.style.cssText='position:fixed;left:6px;top:calc(env(safe-area-inset-top,0px) + 2px);z-index:2147483647;font:9px/11px monospace;color:#fff;background:rgba(0,0,0,.6);padding:2px 4px;border-radius:4px;pointer-events:none;white-space:pre';document.body.appendChild(dbg)}
-    if(dbg)dbg.textContent='fix5 sa='+(sa?1:0)+' ih='+ih+' sh='+sh+' lvh='+lv+' top='+topInset()+' app-h='+h+' body='+(document.body?document.body.offsetHeight:'-');
+    var ih=window.innerHeight,iw=window.innerWidth,sh=Math.max(screen.height,screen.width),h=0;
+    if(sa&&ih>=iw){h=Math.max(ih,lvh());if(sh>h&&sh-h<=120)h=sh}
+    if(h>ih)r.style.setProperty('--app-h',h+'px');else r.style.removeProperty('--app-h');
   }
   fit();
-  document.addEventListener('DOMContentLoaded',fit);
   window.addEventListener('load',fit);
   window.addEventListener('resize',fit);
   window.addEventListener('orientationchange',function(){setTimeout(fit,300)});
@@ -977,7 +975,7 @@
     const t=e.target;
     const appEl=t.closest('.app');
     if(appEl&&isFolderEl(appEl)&&!t.closest('.folder-modal-mask')){openFolder(appEl);return}
-    if(appEl&&!editMode&&!t.closest('.folder-modal-mask')){openApp(appLabel(appEl));return}
+    if(appEl&&!editMode&&!t.closest('.folder-modal-mask')){openApp(appLabel(appEl),appEl);return}
     if(editMode&&!appEl&&!t.closest('.dynamic-edit-pill')&&!t.closest('.folder-modal-mask'))exitEditMode();
   });
 
@@ -1010,7 +1008,7 @@
       Array.from(folderModalGrid.children).forEach(a=>a.classList.remove('jiggle'));
     }else{
       const a=e.target.closest('.app');
-      if(a&&APP_FILES[appLabel(a)]){e.stopPropagation();closeFolderModal();openApp(appLabel(a))}
+      if(a&&APP_FILES[appLabel(a)]){e.stopPropagation();closeFolderModal();openApp(appLabel(a),a)}
     }
   });
 
@@ -1031,7 +1029,7 @@
   const THEME_KEY='phoneTheme',NAMES_KEY='xsj_app_names';
   const APP_FILES={'美化':'美化.html'};          // 以后别的 App 的文件也加在这里
   const appLayer=document.getElementById('appLayer'),appFrame=document.getElementById('appFrame');
-  let appOpen=false,appCloseTimer=0,themeFontEl=null;
+  let appOpen=false,appCloseTimer=0,appLoadTimer=0,themeFontEl=null;
   function appLabel(a){return((a.querySelector('.label')||{}).textContent||'').trim()}
   function readTheme(){try{return JSON.parse(localStorage.getItem(THEME_KEY)||'null')||{}}catch(_){return{}}}
   function applyTheme(){
@@ -1043,6 +1041,10 @@
     }else{
       body.style.backgroundImage='none';body.style.backgroundColor=t.bgColor||'';
     }
+    // html 画布跟 body 用同一张壁纸/底色：屏幕最边缘哪怕有 1px 没盖到，露出来的也是壁纸，不是浅灰底色
+    root.style.backgroundImage=body.style.backgroundImage;root.style.backgroundSize='cover';
+    root.style.backgroundPosition='center';root.style.backgroundRepeat='no-repeat';
+    root.style.backgroundColor=body.style.backgroundColor||'#000';
     // 标签颜色：背景偏深（或用壁纸）时改成白字，保证看得清
     let dark=false;
     if(t.wallpaperCSS&&t.wallpaperCSS!=='none')dark=true;
@@ -1071,20 +1073,27 @@
       localStorage.setItem(NAMES_KEY,JSON.stringify(names));
     }catch(_){}
   }
-  function openApp(name){
+  function openApp(name,fromEl){
     const file=APP_FILES[name];
     if(!file||appOpen)return;
-    appOpen=true;clearTimeout(appCloseTimer);
+    appOpen=true;clearTimeout(appCloseTimer);clearTimeout(appLoadTimer);
     publishAppNames();
+    // 动画起点：被点图标的中心
+    let ox=window.innerWidth/2,oy=window.innerHeight/2;
+    try{const r=fromEl&&fromEl.getBoundingClientRect();if(r&&r.width>0){ox=r.left+r.width/2;oy=r.top+r.height/2}}catch(_){}
+    appLayer.style.transformOrigin=ox+'px '+oy+'px';
+    appLayer.classList.remove('loaded');
+    appFrame.onload=()=>{if(appOpen)appLayer.classList.add('loaded')};
+    appLoadTimer=setTimeout(()=>{if(appOpen)appLayer.classList.add('loaded')},900);   // 兜底：加载太慢也要显示
     appFrame.src=file;                              // 每次打开都重新加载，保证读到最新设置
     appLayer.classList.add('show');appLayer.setAttribute('aria-hidden','false');
     requestAnimationFrame(()=>requestAnimationFrame(()=>appLayer.classList.add('open')));
   }
   function closeApp(){
     if(!appOpen)return;
-    appOpen=false;applyTheme();
+    appOpen=false;applyTheme();clearTimeout(appLoadTimer);
     appLayer.classList.remove('open');appLayer.setAttribute('aria-hidden','true');
-    appCloseTimer=setTimeout(()=>{appLayer.classList.remove('show');appFrame.src='about:blank'},320);
+    appCloseTimer=setTimeout(()=>{appLayer.classList.remove('show','loaded');appFrame.src='about:blank'},420);
   }
   window.addEventListener('message',e=>{
     if(e.source!==appFrame.contentWindow)return;
