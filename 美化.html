@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 美化 V1_9（基于 V1_8：修 bug + 优化 + 美化「粘贴多行直链」弹层）-->
+<!-- 美化 V1_12（基于 V1_11：上传图片自动转直链——对接「直链」的仓库/记录/命名设置，新增「转换已有本地图片」）-->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -17,6 +17,7 @@ set();if(m&&m.addEventListener)m.addEventListener('change',set);})();
 <title>Appearance</title>
 <style>
 :root{
+  --opt:#FFFFFF; --opt-line:rgba(60,60,67,.10); --opt-shadow:0 0 #0000;
   --bg:#F7F7F9; --card:#FFFFFF; --ink:#000000; --muted:#8E8E93; --sub:#6C6C70;
   --sep:rgba(60,60,67,.16); --fill:#EDEDF0; --ctl-line:rgba(60,60,67,.14); --press:rgba(60,60,67,.08);
   --track:#E5E5EA; --on:#111111; --on-ink:#FFFFFF; --ring:#111111; --glyph:#F0F0F2; --chev:#C4C4C9;
@@ -25,6 +26,7 @@ set();if(m&&m.addEventListener)m.addEventListener('change',set);})();
   --t-err:#FF6B60; --t-err-bg:rgba(255,107,96,.20); --t-info:#64A8FF; --t-info-bg:rgba(100,168,255,.20); --t-dot:rgba(255,255,255,.14);
 }
 html[data-theme="dark"]{
+  --opt:#3A3A3C; --opt-line:rgba(255,255,255,.08); --opt-shadow:none;
   --bg:#000000; --card:#1C1C1E; --ink:#F5F5F7; --muted:#8E8E93; --sub:#AEAEB2;
   --sep:rgba(255,255,255,.12); --fill:#2C2C2E; --ctl-line:rgba(255,255,255,.14); --press:rgba(255,255,255,.08);
   --track:#3A3A3C; --on:#F5F5F7; --on-ink:#000000; --ring:#F5F5F7; --glyph:#2C2C2E; --chev:#58585D;
@@ -229,6 +231,18 @@ button{cursor:pointer}
 .spinner{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.toast-sheet,.toast.show .toast-sheet{transition:opacity .15s linear}.toast-sheet{transform:none}}
+
+/* ===== V1_10：弹层选项统一大小 + 与弹层底色区分 ===== */
+.sheet-actions,.sheet-actions.even{grid-template-columns:1fr 1fr}
+.sheet-actions.three{grid-template-columns:1fr 1fr 1fr}
+.sheet-actions button,.action-list button,.sheet.multi .sheet-actions button{height:50px;border-radius:14px;font-size:15px;font-weight:500}
+.sheet-input{height:50px;border-radius:14px}
+.sheet-input,.sheet-area,.action-list button,.sheet-actions button:not(.sheet-ok){background:var(--opt);box-shadow:inset 0 0 0 1px var(--opt-line)}
+.sheet-input:focus,.sheet-area:focus{box-shadow:0 0 0 1.5px var(--ink)}
+.sheet-actions .sheet-ok{box-shadow:none}
+.action-list button:active,.sheet-actions button:active{opacity:.75}
+.seg button{min-width:46px}
+.plan-actions .small-btn{min-width:58px}
 </style>
 </head>
 <body>
@@ -320,8 +334,13 @@ button{cursor:pointer}
   <div class="group">
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></span>
-      <div class="row-main"><span class="row-title">上传时自动转直链</span></div>
+      <div class="row-main"><span class="row-title">上传时自动转直链</span><span class="row-desc" id="dlDesc"></span></div>
       <label class="ios-switch"><input type="checkbox" id="useDirectLink"><span class="ios-track"></span></label>
+    </div>
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><path d="M12 15V5M8 9l4-4 4 4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3"/></svg></span>
+      <div class="row-main"><span class="row-title">转换已有本地图片</span><span class="row-desc">把图标、壁纸、字体里的本地数据换成直链，省存储空间</span></div>
+      <button type="button" class="small-btn" id="convertLocal">转换</button>
     </div>
   </div>
   <div class="group">
@@ -447,7 +466,7 @@ const TOAST_ICONS={
 };
 function toast(s){
   const t=$('toast'), sheet=t.firstElementChild, dot=sheet.querySelector('.toast-dot'), msg=sheet.querySelector('.toast-msg');
-  const type=/失败|不足|错误|请输入|请先|不对|无法/.test(s)?'error':(/^正在/.test(s)?'info':'ok');
+  const type=/失败|不足|错误|请输入|请先|不对|无法|还没/.test(s)?'error':(/^正在/.test(s)?'info':'ok');
   const wasShown=t.classList.contains('show');
   sheet.dataset.type=type; dot.innerHTML=TOAST_ICONS[type]; msg.textContent=s;
   clearTimeout(toast._t); clearTimeout(toast._h);
@@ -473,7 +492,15 @@ function sync(){theme.appsOrder = currentApps; trackHistory(); let ok=write(KEY,
 // 直接复用"直链"App自己保存Token/仓库名用的那几个localStorage键，两边配置是通的，不用重新填一遍。
 const DL_TOKEN_PREF='useDirectLinkForIcons';
 $('useDirectLink').checked = localStorage.getItem(DL_TOKEN_PREF)==='1';
-$('useDirectLink').onchange=()=>{localStorage.setItem(DL_TOKEN_PREF, $('useDirectLink').checked?'1':'0')};
+$('useDirectLink').onchange=()=>{
+  const on=$('useDirectLink').checked;
+  if(on&&!dlSettings().token){$('useDirectLink').checked=false;localStorage.setItem(DL_TOKEN_PREF,'0');refreshDlDesc();toast('还没在「直链」里配置 GitHub Token，先去直链填写再开启');return}
+  localStorage.setItem(DL_TOKEN_PREF,on?'1':'0');refreshDlDesc();
+  if(on)toast('已开启：上传的图标、壁纸、字体会自动转成直链');
+};
+function refreshDlDesc(){const d=$('dlDesc');if(!d)return;const s=dlSettings();d.textContent=s.token?('上传到仓库 '+s.repo+'，图片换成直链网址'):'还没配置 Token，请先到「直链」填写'}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshDlDesc()});
+window.addEventListener('focus',refreshDlDesc);
 
 function dlSettings(){
   return {
@@ -484,10 +511,25 @@ function dlSettings(){
 }
 async function ghRequest(path,options,token,proxy){
   const base=proxy||'https://api.github.com';
-  const res=await fetch(base+path,{...options,headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',...((options&&options.headers)||{})},cache:'no-store'});
-  const text=await res.text();let data={};try{data=text?JSON.parse(text):{}}catch(e){data={message:text}}
-  if(!res.ok) throw new Error(data.message||('HTTP '+res.status));
-  return data;
+  const bodyLen=(options&&options.body&&options.body.length)||0;
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),60000+Math.min(240000,Math.round(bodyLen/20)));
+  try{
+    const res=await fetch(base+path,{...options,headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',...((options&&options.headers)||{})},cache:'no-store',signal:ctl.signal});
+    const text=await res.text();let data={};try{data=text?JSON.parse(text):{}}catch(e){data={message:text}}
+    if(!res.ok){const err=new Error(data.message||('HTTP '+res.status));err.status=res.status;throw err}
+    return data;
+  }catch(e){if(e&&e.name==='AbortError')throw new Error('请求超时，网络太慢');throw e}
+  finally{clearTimeout(timer)}
+}
+// 把 GitHub / 网络的原始报错翻成人话
+function dlFriendlyError(e){
+  const m=String((e&&e.message)||e||''),st=e&&e.status;
+  if(st===401||/Bad credentials/i.test(m))return 'Token 无效或已过期，请到「直链」重新填写';
+  if(/rate limit|abuse/i.test(m)||st===429)return 'GitHub 请求太频繁，稍后再试';
+  if(st===403)return 'Token 没有仓库写入权限';
+  if(st===404)return '找不到仓库，请检查「直链」里的仓库名';
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m))return '网络连接失败（可在「直链」里配置代理）';
+  return m||'未知错误';
 }
 function dlSafeName(name){
   name=String(name||'icon');
@@ -502,7 +544,7 @@ function dlCdnUrl(owner,repo,branch,path){
 }
 // dataUrl: 已经是 data:image/...;base64,... 或字体的 data:font/...;base64,... 字符串；filename仅用于生成文件名；isImage决定存到images/还是fonts/目录
 const dlCache={key:'',owner:'',branch:''};
-// 批量上传时只查一次用户和仓库，不再每张图都重复请求（原来每张图 3 次请求，12 张就是 36+ 次）
+// 批量上传时只查一次用户和仓库，不再每张图都重复请求
 async function dlResolve(s){
   const key=s.token+'|'+s.repo+'|'+s.proxy;
   if(dlCache.key===key&&dlCache.owner)return dlCache;
@@ -512,55 +554,97 @@ async function dlResolve(s){
     const repoData=await ghRequest('/repos/'+owner+'/'+s.repo,{method:'GET'},s.token,s.proxy);
     branch=repoData.default_branch||'main';
   }catch(e){
-    if(/404|Not Found/i.test(e.message||'')){
+    if(e.status===404||/Not Found/i.test(e.message||'')){
       const created=await ghRequest('/user/repos',{method:'POST',body:JSON.stringify({name:s.repo,auto_init:true})},s.token,s.proxy);
       branch=created.default_branch||'main';
     } else throw e;
   }
   dlCache.key=key;dlCache.owner=owner;dlCache.branch=branch;return dlCache;
 }
-// dataUrl: 已经是 data:image/...;base64,... 或字体的 data:font/...;base64,... 字符串；filename仅用于生成文件名；isImage决定存到images/还是fonts/目录
+function dlRawUrl(owner,repo,ref,path){
+  return 'https://raw.githubusercontent.com/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/'+encodeURIComponent(ref)+'/'+path.split('/').map(encodeURIComponent).join('/');
+}
+function dlRandStem(){
+  const a=new Uint8Array(6);try{crypto.getRandomValues(a)}catch(_){for(let i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256)}
+  return Array.from(a,x=>(x%36).toString(36)).join('')+Date.now().toString(36).slice(-3);
+}
+// dataUrl: data:image/...;base64,... 或字体 data:...；filename 仅用于生成文件名；isImage 决定存 images/ 还是 fonts/
+// 跟「直链」的设置保持一致：Token/仓库/代理、「随机文件名」「按月归档」「固定到提交版本」「超 20MB 走 raw」
 async function uploadAssetToDirectLink(dataUrl, filename, isImage){
   const s=dlSettings();
   if(!s.token) throw new Error('还没在「直链」里配置 GitHub Token');
   const {owner,branch}=await dlResolve(s);
-  // 压缩后如果是 PNG（带透明），文件后缀跟着改，避免 .jpg 里装 PNG
   const mime=(String(dataUrl).match(/^data:([^;,]+)/)||[])[1]||'';
   if(isImage&&/png/i.test(mime))filename=String(filename).replace(/\.[^./\\]+$/,'')+'.png';
   const folder=isImage?'images':'fonts';
-  const path=folder+'/'+Date.now()+'-'+dlSafeName(filename);
+  let name=dlSafeName(filename),stem=Date.now()+'-'+name;
+  if(isImage&&localStorage.getItem('kb_pref_naming')==='random'){const m=name.match(/\.[A-Za-z0-9]+$/);stem=dlRandStem()+(m?m[0].toLowerCase():'')}
+  let sub='';
+  if(isImage&&localStorage.getItem('kb_pref_archive')==='month'){const d=new Date();sub=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'/'}
+  const path=folder+'/'+sub+stem;
   const content=String(dataUrl).indexOf(',')>=0?String(dataUrl).split(',')[1]:String(dataUrl);
+  const bytes=Math.floor(content.length*3/4);
   const encodedPath=path.split('/').map(encodeURIComponent).join('/');
-  let lastErr=null;
+  let lastErr=null,res=null;
   for(let n=0;n<2;n++){
     try{
-      await ghRequest('/repos/'+owner+'/'+s.repo+'/contents/'+encodedPath,{method:'PUT',body:JSON.stringify({message:'上传 '+path,content,branch})},s.token,s.proxy);
+      res=await ghRequest('/repos/'+owner+'/'+s.repo+'/contents/'+encodedPath,{method:'PUT',body:JSON.stringify({message:'上传 '+path,content,branch})},s.token,s.proxy);
       lastErr=null;break;
     }catch(e){
       lastErr=e;
-      if(n>0&&/sha/i.test(e.message||'')){lastErr=null;break}            // 上一次其实已成功
-      if(/Bad credentials|Not Found|401|403/i.test(e.message||'')){dlCache.key='';break} // 认证/仓库有问题，清缓存不重试
-      await new Promise(r=>setTimeout(r,700));                              // 网络抖动，等一下重试一次
+      if(n>0&&/sha/i.test(e.message||'')){lastErr=null;break}
+      if([401,403,404].includes(e.status)||/Bad credentials|Not Found/i.test(e.message||'')){dlCache.key='';break}
+      await new Promise(r=>setTimeout(r,700));
     }
   }
   if(lastErr)throw lastErr;
-  const url=dlCdnUrl(owner,s.repo,branch,path);
-  dlAddToHistory({name:filename,url,isImage:!!isImage,owner,repo:s.repo,branch,path});
+  const sha=res&&res.commit&&res.commit.sha;
+  const ref=(localStorage.getItem('kb_standalone_pin')==='1'&&sha)?sha:branch;
+  const url=bytes>20*1024*1024?dlRawUrl(owner,s.repo,ref,path):dlCdnUrl(owner,s.repo,ref,path);
+  dlAddToHistory({name:filename,url,isImage:!!isImage,size:bytes,owner,repo:s.repo,branch,path});
   return url;
 }
-// 往「直链」自己的资源库历史记录里追加一条,字段跟直链.html里 addToHistory 存的完全一致,
-// 这样打开「直链」App时,美化这边转的直链图片/字体在它的资源库列表里也能看到。
-function dlAddToHistory(e){
+// ===== 写进「直链」的资源库记录 =====
+// 直链新版把记录放在 IndexedDB（direct-link-db / kv / history），不再读 localStorage。
+// 所以这里直接写 IndexedDB，并用 BroadcastChannel 通知已打开的直链页刷新；
+// 直链从没打开过（IndexedDB 里还没有记录）时，写旧版 localStorage，直链首次启动会自动迁移。
+let dlHistQ=Promise.resolve();
+function dlIdb(){return new Promise((res,rej)=>{
+  if(!window.indexedDB)return rej(new Error('no idb'));
+  const rq=indexedDB.open('direct-link-db');
+  rq.onupgradeneeded=()=>{const db=rq.result;if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv');if(!db.objectStoreNames.contains('failed'))db.createObjectStore('failed',{keyPath:'id'})};
+  rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);rq.onblocked=()=>rej(new Error('blocked'));
+})}
+const idbGet=(db,k)=>new Promise((res,rej)=>{const r=db.transaction('kv','readonly').objectStore('kv').get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const idbPut=(db,k,v)=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=t.onabort=()=>rej(t.error)});
+function dlAddToHistory(e){dlHistQ=dlHistQ.then(()=>dlAddToHistoryNow(e)).catch(()=>{})}
+async function dlAddToHistoryNow(e){
+  const entry={
+    id:Date.now()+'-'+Math.random().toString(36).slice(2),
+    name:e.name,url:e.url,isImage:!!e.isImage,isFont:!e.isImage,size:e.size||0,time:Date.now(),
+    githubOwner:e.owner||'',githubRepo:e.repo||'',githubBranch:e.branch||'',githubPath:e.path||''
+  };
+  let db=null;try{db=await dlIdb()}catch(_){}
+  if(db&&db.objectStoreNames.contains('kv')){
+    try{
+      const h=await idbGet(db,'history');
+      if(Array.isArray(h)){
+        h.unshift(entry);await idbPut(db,'history',h);
+        try{
+          const o=await idbGet(db,'upload_order');
+          if(o&&typeof o==='object'&&!Array.isArray(o)){o[[String(e.owner||'').toLowerCase(),String(e.repo||'').toLowerCase(),e.path].join('\u0000')]=entry.time;await idbPut(db,'upload_order',o)}
+        }catch(_){}
+        try{const bc=new BroadcastChannel('direct-link-store');bc.postMessage('history');bc.postMessage('order');bc.close()}catch(_){}
+        db.close();return;
+      }
+    }catch(_){}
+  }
+  try{db&&db.close()}catch(_){}
   try{
     const key='kb_standalone_history';
     const list=JSON.parse(localStorage.getItem(key)||'[]');
-    list.unshift({
-      id:Date.now()+'-'+Math.random().toString(36).slice(2),
-      name:e.name,url:e.url,isImage:!!e.isImage,isFont:!e.isImage,time:Date.now(),
-      githubOwner:e.owner||'',githubRepo:e.repo||'',githubBranch:e.branch||'',githubPath:e.path||''
-    });
-    localStorage.setItem(key,JSON.stringify(list));
-  }catch(err){}
+    list.unshift(entry);localStorage.setItem(key,JSON.stringify(list));
+  }catch(_){}
 }
 
 // 色块处理
@@ -601,7 +685,7 @@ $('bgFile').onchange=e=>{
     let finalSrc=compressed, viaDL=false;
     if(useDL){
       try{ finalSrc=await uploadAssetToDirectLink(compressed, f.name, true); viaDL=true; }
-      catch(err){ toast('壁纸转直链失败（'+(err.message||'未知错误')+'），已改存本地压缩图'); }
+      catch(err){ toast('壁纸转直链失败（'+dlFriendlyError(err)+'），已改存本地压缩图'); }
     }
     let bgCss = 'url("'+finalSrc+'")';
     theme.wallpaperCSS=bgCss; theme.backgroundName=f.name; theme.bgColor='';
@@ -669,7 +753,7 @@ $('fontFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileRe
   let fontSrc=ev.target.result, viaDL=false;
   if(useDL){
     try{ fontSrc=await uploadAssetToDirectLink(ev.target.result, f.name, false); viaDL=true; }
-    catch(err){ toast('字体转直链失败（'+(err.message||'未知错误')+'），已改存本地'); }
+    catch(err){ toast('字体转直链失败（'+dlFriendlyError(err)+'），已改存本地'); }
   }
   theme.customFonts.push({id,name:f.name.replace(/\.[^./\\]+$/,''),stack:'"'+family+'",sans-serif',family,data:fontSrc,custom:true});
   theme.fontId=id;theme.font='"'+family+'",sans-serif';
@@ -737,7 +821,7 @@ $('bulkUpload').onchange = async (ev) => {
             if (!compressed) continue;
             if (useDL) {
                 try { theme.appIcons[name] = await uploadAssetToDirectLink(compressed, name + ".jpg", true); }
-                catch (err) { dlFailCount++; dlFailReason = err.message || '未知错误'; theme.appIcons[name] = compressed; }
+                catch (err) { dlFailCount++; dlFailReason = dlFriendlyError(err); theme.appIcons[name] = compressed; }
             } else {
                 theme.appIcons[name] = compressed;
             }
@@ -813,7 +897,7 @@ iconPicker.onchange=async ev=>{
   const useDL=$('useDirectLink').checked;let msg=dn(name)+(useDL?' 直链已保存':' 图标已保存');
   if(useDL){
     try{theme.appIcons[name]=await uploadAssetToDirectLink(compressed,name+'.jpg',true)}
-    catch(err){theme.appIcons[name]=compressed;msg='转直链失败（'+(err.message||'未知错误')+'），已改存本地'}
+    catch(err){theme.appIcons[name]=compressed;msg='转直链失败（'+dlFriendlyError(err)+'），已改存本地'}
   }else theme.appIcons[name]=compressed;
   const ok=sync();renderApps();if(ok)toast(msg);
 };
@@ -975,6 +1059,42 @@ $('renameModal').addEventListener('click',e=>{if(e.target===$('renameModal'))clo
 $('renameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveAlias($('renameInput').value)}});
 $('actRename').addEventListener('click',()=>{closeAct();openRename(actName)});
 
+/* ===== 转换已有本地图片：把 data: 数据逐个传成直链，释放 localStorage 空间 ===== */
+$('convertLocal').addEventListener('click',async()=>{
+  if(!dlSettings().token){toast('还没在「直链」里配置 GitHub Token，先去直链填写');return}
+  const isData=u=>/^data:/i.test(String(u||''));
+  const cssData=css=>{const m=/^url\(["']?(data:[^"')]+)["']?\)$/.exec(String(css||''));return m?m[1]:''};
+  theme.appIcons=theme.appIcons||{};
+  const icons=Object.keys(theme.appIcons).filter(k=>isData(theme.appIcons[k]));
+  const wallSet=[...new Set([theme.wallpaperCSS,...savedBgs].filter(c=>cssData(c)))];
+  const fontsTodo=(theme.customFonts||[]).filter(f=>isData(f.data));
+  const total=icons.length+wallSet.length+fontsTodo.length;
+  if(!total){toast('没有需要转换的本地图片');return}
+  let n=0,done=0,fail=0,reason='';
+  const wallMap={};
+  const run=async fn=>{
+    toast('正在转直链 '+(++n)+'/'+total+'...');
+    try{await fn();done++;return true}
+    catch(err){fail++;reason=dlFriendlyError(err);return !/Token|权限|仓库/.test(reason)}
+  };
+  let go=true;
+  for(const name of icons){if(!go)break;go=await run(async()=>{theme.appIcons[name]=await uploadAssetToDirectLink(theme.appIcons[name],name+'.jpg',true)})}
+  for(const css of wallSet){if(!go)break;go=await run(async()=>{wallMap[css]='url("'+await uploadAssetToDirectLink(cssData(css),'wallpaper.jpg',true)+'")'})}
+  for(const f of fontsTodo){if(!go)break;go=await run(async()=>{
+    let nm=f.name||'font';
+    if(!/\.(ttf|otf|woff2?)$/i.test(nm)){const mm=(String(f.data).match(/^data:([^;,]+)/)||[])[1]||'';nm+=/woff2/i.test(mm)?'.woff2':/woff/i.test(mm)?'.woff':/otf|opentype/i.test(mm)?'.otf':'.ttf'}
+    f.data=await uploadAssetToDirectLink(f.data,nm,false);
+  })}
+  if(Object.keys(wallMap).length){
+    if(wallMap[theme.wallpaperCSS])theme.wallpaperCSS=wallMap[theme.wallpaperCSS];
+    savedBgs=[...new Set(savedBgs.map(c=>wallMap[c]||c))];
+  }
+  renderApps();renderSavedBgs();injectFonts();renderFonts();
+  const ok=sync();
+  if(fail)toast('已转换 '+done+' 个，'+fail+' 个失败（'+reason+'）');
+  else if(ok)toast('已转换 '+done+' 个本地图片为直链');
+});
+
 /* ===== 批量直链：粘贴多行，按图标顺序填入 ===== */
 const multiModal=$('multiModal'),multiInput=$('multiInput');
 const URL_RE=/https?:\/\/[^\s"'<>)\]]+/gi;
@@ -1088,7 +1208,7 @@ function goBack(){
   }, {passive:true});
 })();
 
-renderSwatches();renderSavedBgs();renderFonts();renderApps();renderPlans();
+renderSwatches();renderSavedBgs();renderFonts();renderApps();renderPlans();refreshDlDesc();
 
 /* ===== 底栏 / 底部弹层跟随真实可视视口修正（键盘弹出时不被挡住） ===== */
 (function fixBottomToVisualViewport(){
