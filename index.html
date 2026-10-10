@@ -1036,7 +1036,7 @@
   /* ================= 美化接线：全局主题 + 应用层 =================
      美化 把设置写进 localStorage('phoneTheme')，并通知这里；这里读出来应用到整个桌面 */
   const THEME_KEY='phoneTheme',NAMES_KEY='xsj_app_names';
-  const APP_FILES={'美化':'美化.html'};          // 以后别的 App 的文件也加在这里
+  const APP_FILES={'美化':'美化.html','直链':'直链.html'};          // 以后别的 App 的文件也加在这里
   const appLayer=document.getElementById('appLayer'),appFrame=document.getElementById('appFrame');
   let appOpen=false,appCloseTimer=0,appLoadTimer=0,themeFontEl=null;
   function appLabel(a){return(a.dataset.key||(a.querySelector('.label')||{}).textContent||'').trim()}
