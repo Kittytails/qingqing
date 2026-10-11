@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 美化 V1_12（基于 V1_11：上传图片自动转直链——对接「直链」的仓库/记录/命名设置，新增「转换已有本地图片」）-->
+<!-- 美化 V1_13：新增图标边缘线/颜色、图片大小与位置、App 间距、Dock 与搜索磨砂玻璃（自适应壁纸）。前一版 V1_12（基于 V1_11：上传图片自动转直链——对接「直链」的仓库/记录/命名设置，新增「转换已有本地图片」）-->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -243,6 +243,16 @@ button{cursor:pointer}
 .action-list button:active,.sheet-actions button:active{opacity:.75}
 .seg button{min-width:46px}
 .plan-actions .small-btn{min-width:58px}
+
+/* ===== V1_13：图标细节 / Dock 与搜索 ===== */
+.mini-color{width:34px;height:34px;padding:0;border:0;border-radius:50%;background:none;-webkit-appearance:none;appearance:none;flex:none;overflow:hidden}
+.mini-color::-webkit-color-swatch-wrapper{padding:0}
+.mini-color::-webkit-color-swatch{border:0;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.row.off,.srow.off{opacity:.4;pointer-events:none}
+.sp{height:176px}
+.sp-icons{height:calc(100% - 64px)}
+.sp-search{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);width:62px;height:18px;border-radius:9px;z-index:2;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.sp-dock{position:absolute;left:14px;right:14px;bottom:10px;height:32px;border-radius:16px;z-index:2;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 </style>
 </head>
 <body>
@@ -305,7 +315,7 @@ button{cursor:pointer}
 <section class="sec">
   <div class="sec-label">Style</div>
   <div class="group">
-    <div class="sp"><div class="sp-bg" id="spBg"></div><div class="sp-dim" id="spDim"></div><div class="sp-icons" id="spIcons"></div></div>
+    <div class="sp"><div class="sp-bg" id="spBg"></div><div class="sp-dim" id="spDim"></div><div class="sp-icons" id="spIcons"></div><div class="sp-search" id="spSearch"></div><div class="sp-dock" id="spDock"></div></div>
     <div class="srow"><div class="srow-top"><span class="row-title">图标大小</span><span class="srow-val" id="vSize"></span></div><input type="range" id="rSize" min="52" max="76" step="1"></div>
     <div class="srow"><div class="srow-top"><span class="row-title">图标圆角</span><span class="srow-val" id="vRadius"></span></div><input type="range" id="rRadius" min="0" max="50" step="1"></div>
     <div class="srow"><div class="srow-top"><span class="row-title">壁纸压暗</span><span class="srow-val" id="vDim"></span></div><input type="range" id="rDim" min="0" max="60" step="1"></div>
@@ -324,6 +334,60 @@ button{cursor:pointer}
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 107-7M5 5v5h5"/></svg></span>
       <div class="row-main"><span class="row-title">恢复默认样式</span></div>
       <button type="button" class="small-btn" id="styleReset">重置</button>
+    </div>
+  </div>
+</section>
+
+<!-- Icon Details -->
+<section class="sec">
+  <div class="sec-label">Icon Details</div>
+  <div class="group">
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/></svg></span>
+      <div class="row-main"><span class="row-title">图标边缘线</span><span class="row-desc">图标外圈的细线，可以关掉</span></div>
+      <label class="ios-switch"><input type="checkbox" id="bdOn"><span class="ios-track"></span></label>
+    </div>
+    <div class="row has-glyph" id="bdColorRow">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/></svg></span>
+      <div class="row-main"><span class="row-title">边缘线颜色</span></div>
+      <input type="color" id="bdColor" class="mini-color" value="#d9d9d9">
+    </div>
+    <div class="srow" id="bdWRow"><div class="srow-top"><span class="row-title">边缘线粗细</span><span class="srow-val" id="vBdW"></span></div><input type="range" id="rBdW" min="0.5" max="4" step="0.5"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">图片大小</span><span class="srow-val" id="vImgS"></span></div><input type="range" id="rImgS" min="50" max="200" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">图片左右位置</span><span class="srow-val" id="vImgX"></span></div><input type="range" id="rImgX" min="-40" max="40" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">图片上下位置</span><span class="srow-val" id="vImgY"></span></div><input type="range" id="rImgY" min="-40" max="40" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">图标横向间距</span><span class="srow-val" id="vGapX"></span></div><input type="range" id="rGapX" min="0" max="32" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">图标纵向间距</span><span class="srow-val" id="vGapY"></span></div><input type="range" id="rGapY" min="0" max="24" step="1"></div>
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 107-7M5 5v5h5"/></svg></span>
+      <div class="row-main"><span class="row-title">恢复默认</span><span class="row-desc">边缘线、图片位置、间距</span></div>
+      <button type="button" class="small-btn" id="iconFxReset">重置</button>
+    </div>
+  </div>
+</section>
+
+<!-- Dock & Search -->
+<section class="sec">
+  <div class="sec-label">Dock &amp; Search</div>
+  <div class="group">
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="3"/><path d="M8 10h8"/></svg></span>
+      <div class="row-main"><span class="row-title">自适应背景</span><span class="row-desc">磨砂玻璃的颜色跟着壁纸走</span></div>
+      <label class="ios-switch"><input type="checkbox" id="glassOn"><span class="ios-track"></span></label>
+    </div>
+    <div class="row has-glyph" id="glassColorRow">
+      <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/></svg></span>
+      <div class="row-main"><span class="row-title">玻璃颜色</span><span class="row-desc">关掉自适应后才能自己选</span></div>
+      <input type="color" id="glassColor" class="mini-color" value="#ffffff">
+    </div>
+    <div class="srow"><div class="srow-top"><span class="row-title">Dock 磨砂强度</span><span class="srow-val" id="vDockBlur"></span></div><input type="range" id="rDockBlur" min="0" max="40" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">Dock 透明度</span><span class="srow-val" id="vDockOp"></span></div><input type="range" id="rDockOp" min="0" max="100" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">搜索 磨砂强度</span><span class="srow-val" id="vSrchBlur"></span></div><input type="range" id="rSrchBlur" min="0" max="40" step="1"></div>
+    <div class="srow"><div class="srow-top"><span class="row-title">搜索 透明度</span><span class="srow-val" id="vSrchOp"></span></div><input type="range" id="rSrchOp" min="0" max="100" step="1"></div>
+    <div class="row has-glyph">
+      <span class="glyph"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 107-7M5 5v5h5"/></svg></span>
+      <div class="row-main"><span class="row-title">恢复默认</span><span class="row-desc">Dock 和搜索的玻璃效果</span></div>
+      <button type="button" class="small-btn" id="glassReset">重置</button>
     </div>
   </div>
 </section>
@@ -938,11 +1002,77 @@ $('linkApply').addEventListener('click',()=>{
 });
 
 
-/* ===== Style：图标大小/圆角/名字、壁纸压暗/模糊 ===== */
-const STYLE_DEF={iconSize:64,iconRadius:28,showLabels:true,labelColor:'',wallDim:0,wallBlur:0};
+/* ===== 玻璃配色：采样壁纸底部的平均色，算出 Dock / 搜索的毛玻璃颜色（小手机和美化用同一份算法）===== */
+var _bgCache=new Map();
+function sampleBottom(css,cb){
+  const m=/^url\(["']?(.+?)["']?\)$/.exec(String(css||''));
+  if(!m){cb(null);return}
+  const url=m[1];
+  if(_bgCache.has(url)){cb(_bgCache.get(url));return}
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=()=>{
+    let res=null;
+    try{
+      const W=24,H=48,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+      const sc=Math.max(W/img.naturalWidth,H/img.naturalHeight),w=img.naturalWidth*sc,h=img.naturalHeight*sc;
+      x.drawImage(img,(W-w)/2,(H-h)/2,w,h);                       // 和壁纸 background-size:cover 居中一致
+      const y0=Math.floor(H*0.78),d=x.getImageData(0,y0,W,H-y0).data;   // 取最下面 22%：Dock 和搜索所在的位置
+      let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
+      res={r:r/n,g:g/n,b:b/n};
+    }catch(_){res=null}                                             // 跨域图读不出像素：当作未知
+    _bgCache.set(url,res);cb(res);
+  };
+  img.onerror=()=>{_bgCache.set(url,null);cb(null)};
+  img.src=url;
+}
+function hexToRgb(h){const m=/^#?([0-9a-f]{6})$/i.exec(String(h||''));if(!m)return null;const n=parseInt(m[1],16);return[n>>16&255,n>>8&255,n&255]}
+function glassCalc(t,bg){
+  const num=(v,d)=>{v=parseFloat(v);return isFinite(v)?v:d},cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const hasWall=!!(t.wallpaperCSS&&t.wallpaperCSS!=='none');
+  const dim=hasWall?cl(num(t.wallDim,0),0,60)/100:0;
+  const auto=t.glassAuto!==false;
+  const bgD=(bg||[170,170,170]).map(v=>v*(1-dim)),white=[255,255,255];
+  const mix=(a,b,k)=>a.map((v,i)=>v*(1-k)+b[i]*k);
+  const tint=auto?(bg?mix(bgD,white,.28):white):(hexToRgb(t.glassColor)||white);
+  const lum=c=>0.299*c[0]+0.587*c[1]+0.114*c[2];
+  const dockA=cl(num(t.dockOpacity,50),0,100)/100,srchA=cl(num(t.searchOpacity,55),0,100)/100;
+  const rgba=(c,a)=>'rgba('+c.map(Math.round).join(',')+','+a+')';
+  const lumD=lum(mix(bgD,tint,dockA)),lumS=lum(mix(bgD,tint,srchA)),light=lumS>150;
+  return{
+    dockBg:rgba(tint,dockA),dockBlur:cl(num(t.dockBlur,20),0,40),dockEdge:lumD>150?'rgba(255,255,255,.72)':'rgba(255,255,255,.28)',
+    srchBg:rgba(tint,srchA),srchBlur:cl(num(t.searchBlur,20),0,40),srchEdge:lumS>150?'rgba(255,255,255,.88)':'rgba(255,255,255,.3)',
+    srchText:light?'#666':'#f2f2f2',dot:light?'rgba(90,90,90,.42)':'rgba(255,255,255,.45)',dotOn:light?'rgba(40,40,40,.78)':'rgba(255,255,255,.95)'
+  };
+}
+
+/* ===== Style：图标大小/圆角/名字、壁纸压暗/模糊、边缘线、图片位置、间距、Dock 与搜索玻璃 ===== */
+const STYLE_DEF={iconSize:64,iconRadius:28,showLabels:true,labelColor:'',wallDim:0,wallBlur:0,
+  iconBorder:true,iconBorderColor:'#d9d9d9',iconBorderWidth:1,imgScale:100,imgX:0,imgY:0,gapX:12,gapY:12,
+  glassAuto:true,glassColor:'#ffffff',dockBlur:20,dockOpacity:50,searchBlur:20,searchOpacity:55};
+const SL=[['rSize','iconSize'],['rRadius','iconRadius'],['rDim','wallDim'],['rBlur','wallBlur'],['rBdW','iconBorderWidth'],['rImgS','imgScale'],['rImgX','imgX'],['rImgY','imgY'],['rGapX','gapX'],['rGapY','gapY'],['rDockBlur','dockBlur'],['rDockOp','dockOpacity'],['rSrchBlur','searchBlur'],['rSrchOp','searchOpacity']];
+const LBL=[['vSize','iconSize',' px'],['vRadius','iconRadius',' %'],['vDim','wallDim',' %'],['vBlur','wallBlur',' px'],['vBdW','iconBorderWidth',' px'],['vImgS','imgScale',' %'],['vImgX','imgX',' %'],['vImgY','imgY',' %'],['vGapX','gapX',' px'],['vGapY','gapY',' px'],['vDockBlur','dockBlur',' px'],['vDockOp','dockOpacity',' %'],['vSrchBlur','searchBlur',' px'],['vSrchOp','searchOpacity',' %']];
+// 磨砂玻璃默认「自适应」；用户自己调过 Dock/搜索参数的，不动他的设置
+if(theme.glassAuto===undefined&&!['glassColor','dockBlur','dockOpacity','searchBlur','searchOpacity'].some(k=>theme[k]!==undefined))theme.glassAuto=true;
 function sv(k){const v=theme[k];return(v===undefined||v===null)?STYLE_DEF[k]:v}
 function isDarkHex(h){const m=/^#?([0-9a-f]{6})$/i.exec(String(h||''));if(!m)return false;const n=parseInt(m[1],16);return(0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))<140}
-function paintStyleLabels(){$('vSize').textContent=sv('iconSize')+' px';$('vRadius').textContent=sv('iconRadius')+' %';$('vDim').textContent=sv('wallDim')+' %';$('vBlur').textContent=sv('wallBlur')+' px'}
+function paintStyleLabels(){LBL.forEach(([id,k,u])=>{const e=$(id);if(e)e.textContent=sv(k)+u})}
+var _asp=new Map();
+function fitPreviewBg(ic,url,sc,ox,oy,size){
+  if(sc===1&&ox===0&&oy===0){ic.style.backgroundSize='';ic.style.backgroundPosition='';return}
+  const a=_asp.get(url);
+  ic.style.backgroundSize=(a||1)>=1?'auto '+(sc*100)+'%':(sc*100)+'% auto';
+  ic.style.backgroundPosition='calc(50% + '+(ox*size).toFixed(1)+'px) calc(50% + '+(oy*size).toFixed(1)+'px)';
+  if(a===undefined){_asp.set(url,0);const im=new Image();im.onload=()=>{_asp.set(url,(im.naturalWidth||1)/(im.naturalHeight||1));paintPreview()};im.onerror=()=>_asp.set(url,1);im.src=url}
+}
+function paintGlassPreview(){
+  const wall=!!(theme.wallpaperCSS&&theme.wallpaperCSS!=='none');
+  const go=bg=>{
+    const g=glassCalc(theme,bg),d=$('spDock'),sr=$('spSearch');if(!d||!sr)return;
+    d.style.background=g.dockBg;d.style.border='1px solid '+g.dockEdge;d.style.webkitBackdropFilter=d.style.backdropFilter='blur('+g.dockBlur+'px) saturate(1.08)';
+    sr.style.background=g.srchBg;sr.style.border='1px solid '+g.srchEdge;sr.style.webkitBackdropFilter=sr.style.backdropFilter='blur('+g.srchBlur+'px) saturate(1.4)';
+  };
+  if(wall)sampleBottom(theme.wallpaperCSS,x=>go(x?[x.r,x.g,x.b]:null));else go(hexToRgb(theme.bgColor||'#ffffff'));
+}
 function paintPreview(){
   const wall=!!(theme.wallpaperCSS&&theme.wallpaperCSS!=='none'),bg=$('spBg');
   bg.style.backgroundImage=wall?theme.wallpaperCSS:'none';
@@ -952,29 +1082,50 @@ function paintPreview(){
   $('spDim').style.background=dim>0?'rgba(0,0,0,'+(dim/100)+')':'transparent';
   const size=+sv('iconSize'),rad=size*(+sv('iconRadius'))/100,dark=wall||isDarkHex(theme.bgColor);
   const col=theme.labelColor||(dark?'#fff':'#8E8E93'),box=$('spIcons');box.innerHTML='';
+  const bdOn=sv('iconBorder')!==false,bdCustom=!!(theme.iconBorderColor||theme.iconBorderWidth!=null);
+  const bd=!bdOn?'none':(bdCustom?sv('iconBorderWidth')+'px solid '+sv('iconBorderColor'):'');
+  const sc=sv('imgScale')/100,ox=sv('imgX')/100,oy=sv('imgY')/100;
   currentApps.slice(0,4).forEach(name=>{
     const it=document.createElement('div');it.className='sp-it';
-    const ic=document.createElement('div');ic.className='sp-ic';ic.style.cssText='width:'+size+'px;height:'+size+'px;border-radius:'+rad+'px';
+    const ic=document.createElement('div');ic.className='sp-ic';ic.style.cssText='width:'+size+'px;height:'+size+'px;border-radius:'+rad+'px'+(bd?';border:'+bd:'');
     const url=theme.appIcons&&theme.appIcons[name];
-    if(url)ic.style.backgroundImage='url("'+String(url).replace(/"/g,'\\"')+'")';else ic.textContent=dn(name).slice(0,2);
+    if(url){ic.style.backgroundImage='url("'+String(url).replace(/"/g,'\\"')+'")';fitPreviewBg(ic,url,sc,ox,oy,size)}else ic.textContent=dn(name).slice(0,2);
     it.appendChild(ic);
     if(sv('showLabels')!==false){const nm=document.createElement('div');nm.className='sp-nm';nm.textContent=dn(name);nm.style.color=col;if(dark&&!theme.labelColor)nm.style.textShadow='0 1px 4px rgba(0,0,0,.3)';it.appendChild(nm)}
     box.appendChild(it);
   });
+  // 间距：按真实桌面 4 列的算法估一个视觉间距，拖滑块时预览会跟着变
+  const gx=+sv('gapX'),W=box.clientWidth||340,cell=(W-32-3*gx)/4;
+  box.style.justifyContent='center';box.style.columnGap=Math.max(6,cell-size+gx)+'px';
+  paintGlassPreview();
 }
 function refreshStyleUI(){
-  $('rSize').value=sv('iconSize');$('rRadius').value=sv('iconRadius');$('rDim').value=sv('wallDim');$('rBlur').value=sv('wallBlur');
+  SL.forEach(([id,key])=>{const e=$(id);if(e)e.value=sv(key)});
   $('showLabels').checked=sv('showLabels')!==false;
   document.querySelectorAll('#labelSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.c||'')===(theme.labelColor||'')));
+  const bdOn=sv('iconBorder')!==false;
+  $('bdOn').checked=bdOn;$('bdColor').value=sv('iconBorderColor');
+  $('bdColorRow').classList.toggle('off',!bdOn);$('bdWRow').classList.toggle('off',!bdOn);
+  const ga=sv('glassAuto')!==false;
+  $('glassOn').checked=ga;$('glassColor').value=sv('glassColor');$('glassColorRow').classList.toggle('off',ga);
   paintStyleLabels();paintPreview();
 }
-[['rSize','iconSize'],['rRadius','iconRadius'],['rDim','wallDim'],['rBlur','wallBlur']].forEach(([id,key])=>{
+const SL_HOOK={iconBorderWidth:()=>{theme.iconBorder=true;if(!theme.iconBorderColor)theme.iconBorderColor=sv('iconBorderColor')}};
+SL.forEach(([id,key])=>{
   const el=$(id);
-  el.addEventListener('input',()=>{theme[key]=+el.value;paintStyleLabels();paintPreview()});
-  el.addEventListener('change',()=>{theme[key]=+el.value;sync()});
+  el.addEventListener('input',()=>{theme[key]=+el.value;if(SL_HOOK[key])SL_HOOK[key]();paintStyleLabels();paintPreview()});
+  el.addEventListener('change',()=>{theme[key]=+el.value;if(SL_HOOK[key])SL_HOOK[key]();sync();refreshStyleUI()});
 });
 $('showLabels').addEventListener('change',()=>{theme.showLabels=$('showLabels').checked;sync()});
 $('labelSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;theme.labelColor=b.dataset.c||'';sync();refreshStyleUI()});
+$('bdOn').addEventListener('change',()=>{theme.iconBorder=$('bdOn').checked;if(theme.iconBorder&&!theme.iconBorderColor){theme.iconBorderColor=sv('iconBorderColor');theme.iconBorderWidth=sv('iconBorderWidth')}sync();refreshStyleUI()});
+$('bdColor').addEventListener('input',()=>{theme.iconBorder=true;theme.iconBorderColor=$('bdColor').value;if(theme.iconBorderWidth==null)theme.iconBorderWidth=sv('iconBorderWidth');$('bdOn').checked=true;paintPreview()});
+$('bdColor').addEventListener('change',()=>{sync();refreshStyleUI()});
+$('glassOn').addEventListener('change',()=>{theme.glassAuto=$('glassOn').checked;sync();refreshStyleUI()});
+$('glassColor').addEventListener('input',()=>{theme.glassAuto=false;theme.glassColor=$('glassColor').value;$('glassOn').checked=false;paintPreview()});
+$('glassColor').addEventListener('change',()=>{sync();refreshStyleUI()});
+$('iconFxReset').addEventListener('click',()=>{['iconBorder','iconBorderColor','iconBorderWidth','imgScale','imgX','imgY','gapX','gapY'].forEach(k=>delete theme[k]);sync();refreshStyleUI();toast('图标细节已恢复默认')});
+$('glassReset').addEventListener('click',()=>{['glassColor','dockBlur','dockOpacity','searchBlur','searchOpacity'].forEach(k=>delete theme[k]);theme.glassAuto=true;sync();refreshStyleUI();toast('Dock 和搜索已恢复默认')});
 $('styleReset').addEventListener('click',()=>{['iconSize','iconRadius','showLabels','labelColor','wallDim','wallBlur'].forEach(k=>delete theme[k]);sync();refreshStyleUI();toast('样式已恢复默认')});
 
 /* ===== 撤销 / 重做（范围：背景、字体、图标、样式；每次改动自动记一步）===== */
@@ -1147,7 +1298,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',()=>{try{sync()}catch(_){}});
 
 // 方案处理
-function currentSnapshot(){return JSON.parse(JSON.stringify({bgColor:theme.bgColor,wallpaperCSS:theme.wallpaperCSS,backgroundName:theme.backgroundName,fontId:theme.fontId,font:theme.font,customFonts:theme.customFonts||[],appIcons:theme.appIcons||{},appsOrder:theme.appsOrder||[],appAlias:theme.appAlias||{},iconSize:sv('iconSize'),iconRadius:sv('iconRadius'),showLabels:sv('showLabels'),labelColor:sv('labelColor'),wallDim:sv('wallDim'),wallBlur:sv('wallBlur')}))}
+function currentSnapshot(){return JSON.parse(JSON.stringify({bgColor:theme.bgColor,wallpaperCSS:theme.wallpaperCSS,backgroundName:theme.backgroundName,fontId:theme.fontId,font:theme.font,customFonts:theme.customFonts||[],appIcons:theme.appIcons||{},appsOrder:theme.appsOrder||[],appAlias:theme.appAlias||{},iconSize:sv('iconSize'),iconRadius:sv('iconRadius'),showLabels:sv('showLabels'),labelColor:sv('labelColor'),wallDim:sv('wallDim'),wallBlur:sv('wallBlur'),iconBorder:sv('iconBorder'),iconBorderColor:sv('iconBorderColor'),iconBorderWidth:sv('iconBorderWidth'),imgScale:sv('imgScale'),imgX:sv('imgX'),imgY:sv('imgY'),gapX:sv('gapX'),gapY:sv('gapY'),glassAuto:sv('glassAuto'),glassColor:sv('glassColor'),dockBlur:sv('dockBlur'),dockOpacity:sv('dockOpacity'),searchBlur:sv('searchBlur'),searchOpacity:sv('searchOpacity')}))}
 function renderPlans(){let box=$('planList');box.innerHTML='';if(!plans.length){box.innerHTML='<div class="empty">还没有保存主题方案</div>';return}plans.forEach((p,i)=>{let row=document.createElement('div');row.className='plan-row';row.innerHTML='<div class="plan-info"><div class="plan-name"></div><div class="plan-time"></div></div>';row.querySelector('.plan-name').textContent=p.name;row.querySelector('.plan-time').textContent=new Date(p.time).toLocaleString();let ac=document.createElement('div');ac.className='plan-actions';let use=document.createElement('button');use.className='small-btn dark';use.textContent='使用';use.onclick=()=>{theme=Object.assign(theme,p.data);currentApps=[...apps];swapFrom='';$('swapBar').classList.remove('show');$('colorInput').value=theme.bgColor||'#ffffff';$('hexInput').value=theme.bgColor||'#ffffff';let ok=sync();injectFonts();renderFonts();renderApps();renderSavedBgs();renderSwatches();refreshStyleUI();if(ok)toast('方案已应用')};let del=document.createElement('button');del.className='small-btn';del.textContent='删除';del.onclick=()=>{plans.splice(i,1);write(PLANS,plans);renderPlans();toast('方案已删除')};ac.append(use,del);row.append(ac);box.appendChild(row)})}
 
 // 方案命名：用底部弹层代替浏览器原生 prompt，和「网络链接」弹层同一套样式
