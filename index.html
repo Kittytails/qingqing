@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="app-version" content="V1.11">
+<meta name="app-version" content="V1.12">
 <title>Orbit</title>
 <meta name="apple-mobile-web-app-title" content="Orbit">
 <meta name="application-name" content="Orbit">
@@ -51,11 +51,11 @@
 
   /* ===== 页面与网格 ===== */
   .pages-viewport{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;z-index:10;touch-action:none;transform:translateZ(0);backface-visibility:hidden;-webkit-backface-visibility:hidden}
-  .desktop.home-page{position:absolute;inset:0;padding:24px 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(6,minmax(80px,1fr));align-content:start;gap:12px;overflow:hidden;visibility:hidden;pointer-events:none;transform:translate3d(0,0,0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;contain:layout style paint}
+  .desktop.home-page{position:absolute;inset:0;padding:24px 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(6,minmax(80px,1fr));align-content:start;column-gap:var(--col-gap,12px);row-gap:var(--row-gap,12px);overflow:hidden;visibility:hidden;pointer-events:none;transform:translate3d(0,0,0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;contain:layout style paint}
   .desktop.home-page.active-page{pointer-events:auto;z-index:2}
   body.edit-mode .desktop.home-page{padding-top:78px}
 
-  .desktop-grid{position:absolute;inset:24px 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(6,minmax(80px,1fr));gap:12px;pointer-events:none;opacity:0;z-index:0;transition:opacity .18s ease}
+  .desktop-grid{position:absolute;inset:24px 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(6,minmax(80px,1fr));column-gap:var(--col-gap,12px);row-gap:var(--row-gap,12px);pointer-events:none;opacity:0;z-index:0;transition:opacity .18s ease}
   body.edit-mode .desktop-grid{opacity:1;inset:78px 16px 24px}
   .grid-slot{border-radius:22px;border:1px dashed rgba(0,0,0,.045);background:rgba(255,255,255,.035)}
 
@@ -66,7 +66,7 @@
   /* ===== 图标 ===== */
   .app{position:relative;width:100%;height:calc(var(--icon-size,64px) + 16px);min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;z-index:2;transform:translate3d(0,0,0);transition:transform .18s cubic-bezier(.2,.8,.2,1);touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-drag:none}
   .app .icon{pointer-events:none}
-  .icon{width:var(--icon-size,64px);height:var(--icon-size,64px);background-color:var(--white);border-radius:var(--icon-radius,18px);box-shadow:0 4px 14px rgba(0,0,0,.035);display:flex;justify-content:center;align-items:center;font-size:13px;color:var(--text-color);font-weight:500;border:1px solid rgba(0,0,0,.022);transition:transform .18s cubic-bezier(.2,.8,.2,1),background-color .18s ease,box-shadow .18s ease;flex-shrink:0}
+  .icon{width:var(--icon-size,64px);height:var(--icon-size,64px);background-color:var(--white);border-radius:var(--icon-radius,18px);box-shadow:0 4px 14px rgba(0,0,0,.035);display:flex;justify-content:center;align-items:center;font-size:13px;color:var(--text-color);font-weight:500;border:var(--icon-bd,1px solid rgba(0,0,0,.022));transition:transform .18s cubic-bezier(.2,.8,.2,1),background-color .18s ease,box-shadow .18s ease;flex-shrink:0}
   .app:active .icon{background-color:#f0f0f0;transform:scale(.94);box-shadow:0 2px 8px rgba(0,0,0,.035)}
   .label{font-size:12px;color:var(--gray-color);text-align:center;font-weight:400;white-space:nowrap;pointer-events:none}
 
@@ -88,20 +88,20 @@
 
   /* ===== 页面指示器 ===== */
   .home-indicator-area{position:relative;z-index:500;height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:center}
-  .home-indicator{min-width:42px;height:28px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.88);box-shadow:0 5px 16px rgba(0,0,0,.055),inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);transform:translateY(-8px);transition:min-width .2s ease,padding .2s ease,transform .2s ease,background .2s ease}
+  .home-indicator{min-width:42px;height:28px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;background:var(--srch-bg,rgba(255,255,255,.72));border:1px solid var(--srch-edge,rgba(255,255,255,.88));box-shadow:0 5px 16px rgba(0,0,0,.055),inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(var(--srch-blur,20px)) saturate(1.4);-webkit-backdrop-filter:blur(var(--srch-blur,20px)) saturate(1.4);transform:translateY(-8px);transition:min-width .2s ease,padding .2s ease,transform .2s ease,background .2s ease}
   .home-indicator.search-mode{min-width:76px;padding-left:12px;padding-right:14px}
-  .search-label{display:inline-block;font-size:13px;line-height:1;color:#666;letter-spacing:.2px;white-space:nowrap;font-weight:500}
-  .search-symbol{display:block;flex-shrink:0}
+  .search-label{display:inline-block;font-size:13px;line-height:1;color:var(--srch-text,#666);letter-spacing:.2px;white-space:nowrap;font-weight:500}
+  .search-symbol{display:block;flex-shrink:0;stroke:var(--srch-text,#777)}
   .page-dots{display:none;align-items:center;justify-content:center;gap:5px;max-width:80px}
   .home-indicator.pages-mode .search-symbol,.home-indicator.pages-mode .search-label{display:none}
   .home-indicator.pages-mode .page-dots{display:inline-flex}
-  .page-dot{width:6px;height:6px;border-radius:50%;background:rgba(90,90,90,.42);flex:0 0 6px;border:0;padding:0;cursor:pointer;transition:background .2s ease}
-  .page-dot.active{width:7.5px;height:7.5px;flex-basis:7.5px;background:rgba(40,40,40,.78)}
+  .page-dot{width:6px;height:6px;border-radius:50%;background:var(--srch-dot,rgba(90,90,90,.42));flex:0 0 6px;border:0;padding:0;cursor:pointer;transition:background .2s ease}
+  .page-dot.active{width:7.5px;height:7.5px;flex-basis:7.5px;background:var(--srch-dot-on,rgba(40,40,40,.78))}
   body.edit-mode .home-indicator{transform:translateY(-10px)}
 
   /* ===== Dock ===== */
   .dock-wrapper{padding:10px 15px 35px;z-index:10;flex:0 0 auto;display:flex;justify-content:center}
-  .dock{height:88px;position:relative;background:rgba(255,255,255,.58);backdrop-filter:blur(16px) saturate(1.08);-webkit-backdrop-filter:blur(16px) saturate(1.08);border-radius:32px;display:flex;justify-content:space-around;align-items:center;padding:0 15px;box-shadow:0 7px 24px rgba(0,0,0,.045);border:1px solid rgba(255,255,255,.72);width:100%;touch-action:none;transition:width .22s cubic-bezier(.2,.8,.2,1)}
+  .dock{height:88px;position:relative;background:var(--dock-bg,rgba(255,255,255,.58));backdrop-filter:blur(var(--dock-blur,16px)) saturate(1.08);-webkit-backdrop-filter:blur(var(--dock-blur,16px)) saturate(1.08);border-radius:32px;display:flex;justify-content:space-around;align-items:center;padding:0 15px;box-shadow:0 7px 24px rgba(0,0,0,.045);border:1px solid var(--dock-edge,rgba(255,255,255,.72));width:100%;touch-action:none;transition:width .22s cubic-bezier(.2,.8,.2,1)}
   .dock.drag-target{box-shadow:0 7px 24px rgba(0,0,0,.045),0 0 0 2px rgba(0,0,0,.045)}
   /* 图标少于 4 个时，整条胶囊收缩居中，而不是拉伸图标 */
   .dock.dock-compact{width:auto;min-width:0;flex:0 0 auto;justify-content:center;gap:24px;padding:0 28px}
@@ -112,8 +112,8 @@
   body.is-dragging-app .dock .app:not(.dragging){transition:transform .16s cubic-bezier(.2,.8,.2,1)}
 
   @media (max-height:720px){
-    .desktop.home-page{padding-top:18px;padding-bottom:18px;row-gap:8px}
-    .desktop-grid{inset:18px 16px;row-gap:8px}
+    .desktop.home-page{padding-top:18px;padding-bottom:18px;row-gap:var(--row-gap,8px)}
+    .desktop-grid{inset:18px 16px;row-gap:var(--row-gap,8px)}
     body.edit-mode .desktop-grid{inset:78px 16px 18px}
     .dock-wrapper{padding-top:7px;padding-bottom:27px}
     .dock{height:80px;border-radius:29px}
@@ -1056,6 +1056,98 @@
   let appOpen=false,appCloseTimer=0,appLoadTimer=0,themeFontEl=null;
   function appLabel(a){return(a.dataset.key||(a.querySelector('.label')||{}).textContent||'').trim()}
   function readTheme(){try{return JSON.parse(localStorage.getItem(THEME_KEY)||'null')||{}}catch(_){return{}}}
+/* ===== 玻璃配色：采样壁纸底部的平均色，算出 Dock / 搜索的毛玻璃颜色（小手机和美化用同一份算法）===== */
+const _bgCache=new Map();
+function sampleBottom(css,cb){
+  const m=/^url\(["']?(.+?)["']?\)$/.exec(String(css||''));
+  if(!m){cb(null);return}
+  const url=m[1];
+  if(_bgCache.has(url)){cb(_bgCache.get(url));return}
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=()=>{
+    let res=null;
+    try{
+      const W=24,H=48,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+      const sc=Math.max(W/img.naturalWidth,H/img.naturalHeight),w=img.naturalWidth*sc,h=img.naturalHeight*sc;
+      x.drawImage(img,(W-w)/2,(H-h)/2,w,h);                       // 和壁纸 background-size:cover 居中一致
+      const y0=Math.floor(H*0.78),d=x.getImageData(0,y0,W,H-y0).data;   // 取最下面 22%：Dock 和搜索所在的位置
+      let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
+      res={r:r/n,g:g/n,b:b/n};
+    }catch(_){res=null}                                             // 跨域图读不出像素：当作未知
+    _bgCache.set(url,res);cb(res);
+  };
+  img.onerror=()=>{_bgCache.set(url,null);cb(null)};
+  img.src=url;
+}
+function hexToRgb(h){const m=/^#?([0-9a-f]{6})$/i.exec(String(h||''));if(!m)return null;const n=parseInt(m[1],16);return[n>>16&255,n>>8&255,n&255]}
+function glassCalc(t,bg){
+  const num=(v,d)=>{v=parseFloat(v);return isFinite(v)?v:d},cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const hasWall=!!(t.wallpaperCSS&&t.wallpaperCSS!=='none');
+  const dim=hasWall?cl(num(t.wallDim,0),0,60)/100:0;
+  const auto=t.glassAuto!==false;
+  const bgD=(bg||[170,170,170]).map(v=>v*(1-dim)),white=[255,255,255];
+  const mix=(a,b,k)=>a.map((v,i)=>v*(1-k)+b[i]*k);
+  const tint=auto?(bg?mix(bgD,white,.28):white):(hexToRgb(t.glassColor)||white);
+  const lum=c=>0.299*c[0]+0.587*c[1]+0.114*c[2];
+  const dockA=cl(num(t.dockOpacity,50),0,100)/100,srchA=cl(num(t.searchOpacity,55),0,100)/100;
+  const rgba=(c,a)=>'rgba('+c.map(Math.round).join(',')+','+a+')';
+  const lumD=lum(mix(bgD,tint,dockA)),lumS=lum(mix(bgD,tint,srchA)),light=lumS>150;
+  return{
+    dockBg:rgba(tint,dockA),dockBlur:cl(num(t.dockBlur,20),0,40),dockEdge:lumD>150?'rgba(255,255,255,.72)':'rgba(255,255,255,.28)',
+    srchBg:rgba(tint,srchA),srchBlur:cl(num(t.searchBlur,20),0,40),srchEdge:lumS>150?'rgba(255,255,255,.88)':'rgba(255,255,255,.3)',
+    srchText:light?'#666':'#f2f2f2',dot:light?'rgba(90,90,90,.42)':'rgba(255,255,255,.45)',dotOn:light?'rgba(40,40,40,.78)':'rgba(255,255,255,.95)'
+  };
+}
+
+  /* ===== 图标细节：边缘线、图片缩放/位置、间距 ===== */
+  const _aspect=new Map();let _fitT=0;
+  function fitIcon(ic,sc,ox,oy,custom){
+    if(!custom||!ic.dataset.src){ic.style.backgroundSize='';ic.style.backgroundPosition='';return}
+    const url=ic.dataset.src;
+    const apply=a=>{
+      ic.style.backgroundSize=a>=1?'auto '+(sc*100)+'%':(sc*100)+'% auto';   // 先按「铺满」再缩放：横图量高、竖图量宽
+      ic.style.backgroundPosition='calc(50% + var(--icon-size,64px) * '+ox+') calc(50% + var(--icon-size,64px) * '+oy+')';
+    };
+    const a=_aspect.get(url);
+    if(a){apply(a);return}
+    apply(1);
+    if(a===undefined){
+      _aspect.set(url,0);
+      const im=new Image();
+      im.onload=()=>{_aspect.set(url,(im.naturalWidth||1)/(im.naturalHeight||1));clearTimeout(_fitT);_fitT=setTimeout(applyTheme,40)};
+      im.onerror=()=>_aspect.set(url,1);
+      im.src=url;
+    }
+  }
+  function applyIconFx(t,root){
+    const num=(v,d)=>{v=parseFloat(v);return isFinite(v)?v:d},cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+    const okColor=c=>/^#[0-9a-f]{3,8}$/i.test(String(c||''));
+    if(t.iconBorder===false)root.style.setProperty('--icon-bd','none');
+    else if(okColor(t.iconBorderColor)||t.iconBorderWidth!=null)root.style.setProperty('--icon-bd',cl(num(t.iconBorderWidth,1),0.5,4)+'px solid '+(okColor(t.iconBorderColor)?t.iconBorderColor:'rgba(0,0,0,.022)'));
+    else root.style.removeProperty('--icon-bd');
+    if(t.gapX!=null)root.style.setProperty('--col-gap',cl(num(t.gapX,12),0,32)+'px');else root.style.removeProperty('--col-gap');
+    if(t.gapY!=null)root.style.setProperty('--row-gap',cl(num(t.gapY,12),0,24)+'px');else root.style.removeProperty('--row-gap');
+    const sc=cl(num(t.imgScale,100),50,200)/100,ox=cl(num(t.imgX,0),-50,50)/100,oy=cl(num(t.imgY,0),-50,50)/100;
+    const custom=sc!==1||ox!==0||oy!==0;
+    document.querySelectorAll('.app:not(.folder) .icon').forEach(ic=>fitIcon(ic,sc,ox,oy,custom));
+  }
+  /* ===== Dock / 搜索的磨砂玻璃 ===== */
+  let _glassTok=0;
+  function applyGlass(t,root){
+    const names=['--dock-bg','--dock-blur','--dock-edge','--srch-bg','--srch-blur','--srch-edge','--srch-text','--srch-dot','--srch-dot-on'];
+    const any=['glassAuto','glassColor','dockBlur','dockOpacity','searchBlur','searchOpacity'].some(k=>t[k]!==undefined&&t[k]!==null);
+    const tok=++_glassTok;
+    if(!any){names.forEach(n=>root.style.removeProperty(n));return}      // 美化 没设置过：保持原来的样子
+    const go=bg=>{
+      if(tok!==_glassTok)return;
+      const g=glassCalc(t,bg),s=(k,v)=>root.style.setProperty(k,v);
+      s('--dock-bg',g.dockBg);s('--dock-blur',g.dockBlur+'px');s('--dock-edge',g.dockEdge);
+      s('--srch-bg',g.srchBg);s('--srch-blur',g.srchBlur+'px');s('--srch-edge',g.srchEdge);
+      s('--srch-text',g.srchText);s('--srch-dot',g.dot);s('--srch-dot-on',g.dotOn);
+    };
+    if(t.wallpaperCSS&&t.wallpaperCSS!=='none')sampleBottom(t.wallpaperCSS,s=>go(s?[s.r,s.g,s.b]:null));
+    else go(hexToRgb(t.bgColor||'#ffffff'));
+  }
   function applyTheme(){
     const t=readTheme(),root=document.documentElement;
     // 背景：壁纸或纯色
@@ -1108,9 +1200,11 @@
     document.querySelectorAll('.app:not(.folder)').forEach(a=>{
       const ic=a.querySelector('.icon');if(!ic)return;
       const url=icons[appLabel(a)];
-      if(url){ic.style.backgroundImage='url("'+String(url).replace(/"/g,'\\"')+'")';ic.classList.add('has-img')}
-      else{ic.style.backgroundImage='';ic.classList.remove('has-img')}
+      if(url){ic.style.backgroundImage='url("'+String(url).replace(/"/g,'\\"')+'")';ic.classList.add('has-img');ic.dataset.src=url}
+      else{ic.style.backgroundImage='';ic.classList.remove('has-img');delete ic.dataset.src}
     });
+    applyIconFx(t,root);
+    applyGlass(t,root);
     document.querySelectorAll('.app.folder').forEach(renderFolderPreview);
   }
   // 把桌面上所有 App 的名字（含文件夹里的）给美化，让两边的 App 一致
@@ -1123,6 +1217,7 @@
   }
   /* 用 location.replace 切换页面：不会往浏览器历史里塞记录，
      否则安卓返回键 / 浏览器后退会先在 iframe 里来回翻，而不是退出应用 */
+  const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   let appHist=false,skipPops=0,toastTimer=0;
   function navFrame(url){try{appFrame.contentWindow.location.replace(url)}catch(_){appFrame.src=url}}
   function shellToast(msg){
@@ -1147,7 +1242,9 @@
     appLoadTimer=setTimeout(()=>{if(appOpen)appLayer.classList.add('loaded')},900);   // 兜底：加载太慢也要显示
     navFrame(file);                                  // 每次打开都重新加载，保证读到最新设置
     // 压一条历史记录：安卓返回键 / iOS 边缘返回手势 = 关闭应用，而不是退出整个小手机
-    try{history.pushState({xsjApp:1},'');appHist=true}catch(_){appHist=false}
+    // iOS 不压历史记录：系统自带的边缘返回手势会跟应用自己的返回手势同时触发，
+    // 结果在应用的子页面里一滑，就被系统直接退回了桌面（直链就是这样）。iOS 上返回交给应用自己的手势。
+    if(!IS_IOS){try{history.pushState({xsjApp:1},'');appHist=true}catch(_){appHist=false}}
     appLayer.classList.add('show');appLayer.setAttribute('aria-hidden','false');
     requestAnimationFrame(()=>requestAnimationFrame(()=>appLayer.classList.add('open')));
   }
