@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 美化 V1_19：从直链资源库选图（图标/壁纸）、图标阴影、图标底色（全局+单个）、单个图标的圆角/边缘线/名字、壁纸手势缩放裁剪、名字字号/位置、Dock 圆角/高度/隐藏、从壁纸取色；V1_18：排 bug（换图时重置该图标的图片调整、旧方案不残留调整、3 位颜色）；V1_17：图片调整卡重新排版（画布 + 大小加减按钮 + 归位图标）；V1_16：图片大小/位置搬进单个图标的弹层，每个图标各自调整；V1_15：图片调整搬到 App Icons 板块并改成手势（拖动/双指缩放），去掉三个滑块；换了重置图标；撤销条下移 4px；V1_14：图标图片调整区带放大预览（可拖动）；V1_13：新增图标边缘线/颜色、图片大小与位置、App 间距、Dock 与搜索磨砂玻璃（自适应壁纸）。前一版 V1_12（基于 V1_11：上传图片自动转直链——对接「直链」的仓库/记录/命名设置，新增「转换已有本地图片」）-->
+<!-- 美化 V2_1（原 V1_19）：从直链资源库选图（图标/壁纸）、图标阴影、图标底色（全局+单个）、单个图标的圆角/边缘线/名字、壁纸手势缩放裁剪、名字字号/位置、Dock 圆角/高度/隐藏、从壁纸取色；V1_18：排 bug（换图时重置该图标的图片调整、旧方案不残留调整、3 位颜色）；V1_17：图片调整卡重新排版（画布 + 大小加减按钮 + 归位图标）；V1_16：图片大小/位置搬进单个图标的弹层，每个图标各自调整；V1_15：图片调整搬到 App Icons 板块并改成手势（拖动/双指缩放），去掉三个滑块；换了重置图标；撤销条下移 4px；V1_14：图标图片调整区带放大预览（可拖动）；V1_13：新增图标边缘线/颜色、图片大小与位置、App 间距、Dock 与搜索磨砂玻璃（自适应壁纸）。前一版 V1_12（基于 V1_11：上传图片自动转直链——对接「直链」的仓库/记录/命名设置，新增「转换已有本地图片」）-->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -19,7 +19,7 @@ set();if(m&&m.addEventListener)m.addEventListener('change',set);})();
 :root{
   --opt:#FFFFFF; --opt-line:rgba(60,60,67,.10); --opt-shadow:0 0 #0000;
   --bg:#F7F7F9; --card:#FFFFFF; --ink:#000000; --muted:#8E8E93; --sub:#6C6C70;
-  --sep:rgba(60,60,67,.16); --fill:#EDEDF0; --ctl-line:rgba(60,60,67,.14); --press:rgba(60,60,67,.08);
+  --sep:rgba(60,60,67,.04); --fill:#EDEDF0; --ctl-line:rgba(60,60,67,.14); --press:rgba(60,60,67,.08);
   --track:#E5E5EA; --on:#111111; --on-ink:#FFFFFF; --ring:#111111; --glyph:#F0F0F2; --chev:#C4C4C9;
   --sheet:rgba(248,248,250,.80); --sheet-line:rgba(60,60,67,.12); --fog:247,247,249; --bar:rgba(255,255,255,.6); --bar-line:rgba(255,255,255,.6); --bar-shadow:0 -6px 24px rgba(0,0,0,.05); --done-press:#333;
   --t-bg:#1D1D1F; --t-fg:#F5F5F7; --t-ok:#34C759; --t-ok-bg:rgba(52,199,89,.20);
@@ -28,7 +28,7 @@ set();if(m&&m.addEventListener)m.addEventListener('change',set);})();
 html[data-theme="dark"]{
   --opt:#3A3A3C; --opt-line:rgba(255,255,255,.08); --opt-shadow:none;
   --bg:#000000; --card:#1C1C1E; --ink:#F5F5F7; --muted:#8E8E93; --sub:#AEAEB2;
-  --sep:rgba(255,255,255,.12); --fill:#2C2C2E; --ctl-line:rgba(255,255,255,.14); --press:rgba(255,255,255,.08);
+  --sep:rgba(255,255,255,.05); --fill:#2C2C2E; --ctl-line:rgba(255,255,255,.14); --press:rgba(255,255,255,.08);
   --track:#3A3A3C; --on:#F5F5F7; --on-ink:#000000; --ring:#F5F5F7; --glyph:#2C2C2E; --chev:#58585D;
   --sheet:rgba(30,30,32,.82); --sheet-line:rgba(255,255,255,.10); --fog:0,0,0; --bar:rgba(28,28,30,.62); --bar-line:rgba(255,255,255,.08); --bar-shadow:0 -6px 24px rgba(0,0,0,.35); --done-press:#D1D1D6;
   --t-bg:#F5F5F7; --t-fg:#1D1D1F; --t-ok:#1FA64A; --t-ok-bg:rgba(31,166,74,.16);
@@ -56,7 +56,7 @@ button{cursor:pointer}
 .group + .group{margin-top:38px}
 .group > *{position:relative}
 
-.group > * + *::before,.font-item::before,.plan-row::before,.empty::before{content:"";position:absolute;top:0;left:18px;right:20px;height:1px;background:var(--sep);pointer-events:none}
+.group > * + *::before,.font-item::before,.plan-row::before,.empty::before{content:"";position:absolute;top:0;left:20px;right:20px;height:1px;border-radius:1px;background:var(--sep);pointer-events:none}
 .group > .has-glyph::before{left:64px}
 .group > .strip::before,.group > .app-list::before,.group > .dl-row::before,.group > #fontList::before,.group > #planList::before{display:none}
 
@@ -68,7 +68,6 @@ button{cursor:pointer}
 .glyph svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .row-main{min-width:0;flex:1}
 .row-title{display:block;font-size:17px;line-height:23px;font-weight:500;letter-spacing:-.3px}
-.row-desc{display:block;margin-top:3px;font-size:12px;line-height:17px;color:var(--muted)}
 .chev{flex:none;width:8px;height:14px;margin:0 2px 0 12px;opacity:.45;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%23888' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.5 1.5 6.5 7l-5 5.5'/%3E%3C/svg%3E") center/contain no-repeat}
 .tap:active .chev{opacity:.9}
 #bgHistoryRow{padding-top:14px;padding-bottom:6px}
@@ -122,7 +121,6 @@ button{cursor:pointer}
 .dl-row{display:flex;align-items:center;gap:12px;margin:0 18px 16px;padding:12px 14px;background:var(--fill);border-radius:16px}
 .dl-row-main{min-width:0;flex:1}
 .dl-row-title{font-size:13px;font-weight:500;color:var(--ink)}
-.dl-row-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
 .app-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 4px;padding:2px 12px 18px}
 .app-item{display:flex;flex-direction:column;align-items:center;min-width:0;position:relative}
 .app-item-inner{padding:8px 0 6px;width:100%;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;border-radius:14px;transition:background .15s}
@@ -165,7 +163,6 @@ button{cursor:pointer}
 .sheet.multi{padding-top:12px}
 .sheet-grab{width:38px;height:5px;border-radius:3px;background:var(--muted);opacity:.35;margin:0 auto 16px}
 .sheet.multi .sheet-head{align-items:flex-start;margin-bottom:16px}
-.sheet-sub{margin-top:4px;font-size:13px;line-height:18px;color:var(--muted)}
 .sheet-area{display:block;width:100%;height:300px;height:min(380px,calc(var(--vvh,100dvh) * .44));min-height:150px;padding:16px 18px;border:0;border-radius:20px;background:var(--fill);color:var(--ink);font-size:16px;line-height:1.6;letter-spacing:-.1px;resize:none;outline:none;white-space:pre-wrap;word-break:break-all;overflow:auto;-webkit-overflow-scrolling:touch;font-family:inherit;-webkit-appearance:none;appearance:none;transition:box-shadow .2s}
 .sheet-area::placeholder{color:var(--muted);opacity:.7}
 .sheet-area:focus{box-shadow:0 0 0 1.5px var(--ink)}
@@ -359,17 +356,17 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     </button>
     <button type="button" class="row has-glyph tap" id="bgLibBtn">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 016.5 5h3l2 2.2h6A2.5 2.5 0 0120 9.7v7.8a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 17.5z"/></svg></span>
-      <span class="row-main"><span class="row-title">从直链资源库选</span><span class="row-desc">直接用已上传的图，不用重新上传</span></span>
+      <span class="row-main"><span class="row-title">从直链资源库选</span></span>
       <span class="chev"></span>
     </button>
     <button type="button" class="row has-glyph tap" id="bgAdjBtn">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg></span>
-      <span class="row-main"><span class="row-title">调整壁纸位置</span><span class="row-desc">拖动、双指缩放、裁剪</span></span>
+      <span class="row-main"><span class="row-title">调整壁纸位置</span></span>
       <span class="chev"></span>
     </button>
     <div class="row has-glyph" id="bgHistoryRow" style="display:none">
       <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg></span>
-      <div class="row-main"><span class="row-title">历史背景</span><span class="row-desc">长按删除</span></div>
+      <div class="row-main"><span class="row-title">历史背景</span></div>
     </div>
     <div id="savedBgs" class="strip"></div>
   </div>
@@ -391,7 +388,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
   <div class="group">
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><circle cx="12" cy="16" r="3"/></svg></span>
-      <div class="row-main"><span class="row-title">从壁纸取色</span><span class="row-desc">提取一套配色，一键配好名字、边缘线和阴影</span></div>
+      <div class="row-main"><span class="row-title">从壁纸取色</span></div>
       <button type="button" class="small-btn dark" id="palGen">取色</button>
     </div>
     <div id="palBox" style="display:none">
@@ -443,7 +440,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     <div class="srow"><div class="srow-top"><span class="row-title">名字上下位置</span><span class="srow-val" id="vLblDy"></span></div><input type="range" id="rLblDy" min="-8" max="16" step="1"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span>
-      <div class="row-main"><span class="row-title">恢复默认样式</span><span class="row-desc">大小、圆角、名字、壁纸效果</span></div>
+      <div class="row-main"><span class="row-title">恢复默认样式</span></div>
       <button type="button" class="small-btn" id="styleReset">重置</button>
     </div>
   </div>
@@ -455,7 +452,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
   <div class="group">
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/></svg></span>
-      <div class="row-main"><span class="row-title">图标边缘线</span><span class="row-desc">图标外圈的细线，可以关掉</span></div>
+      <div class="row-main"><span class="row-title">图标边缘线</span></div>
       <label class="ios-switch"><input type="checkbox" id="bdOn"><span class="ios-track"></span></label>
     </div>
     <div class="row has-glyph" id="bdColorRow">
@@ -466,7 +463,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     <div class="srow" id="bdWRow"><div class="srow-top"><span class="row-title">边缘线粗细</span><span class="srow-val" id="vBdW"></span></div><input type="range" id="rBdW" min="0.5" max="4" step="0.5"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="13" rx="4"/><path d="M8 21h8"/></svg></span>
-      <div class="row-main"><span class="row-title">图标阴影</span><span class="row-desc">透明 PNG 会沿着图形轮廓投影</span></div>
+      <div class="row-main"><span class="row-title">图标阴影</span></div>
       <label class="ios-switch"><input type="checkbox" id="shOn"><span class="ios-track"></span></label>
     </div>
     <div class="row has-glyph" id="shColorRow">
@@ -477,7 +474,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     <div class="srow" id="shOpRow"><div class="srow-top"><span class="row-title">阴影强度</span><span class="srow-val" id="vShOp"></span></div><input type="range" id="rShOp" min="0" max="60" step="1"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M4 12h16M12 4v16" opacity=".5"/></svg></span>
-      <div class="row-main"><span class="row-title">图标底色</span><span class="row-desc">透明 PNG 可以换底色</span></div>
+      <div class="row-main"><span class="row-title">图标底色</span></div>
       <div class="seg tight" id="bgModeSeg"><button type="button" data-m="default">白</button><button type="button" data-m="color">自选</button><button type="button" data-m="none">透明</button></div>
     </div>
     <div class="row has-glyph" id="icBgColorRow">
@@ -489,7 +486,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     <div class="srow"><div class="srow-top"><span class="row-title">图标纵向间距</span><span class="srow-val" id="vGapY"></span></div><input type="range" id="rGapY" min="0" max="24" step="1"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span>
-      <div class="row-main"><span class="row-title">恢复默认</span><span class="row-desc">边缘线、阴影、底色、间距</span></div>
+      <div class="row-main"><span class="row-title">恢复默认</span></div>
       <button type="button" class="small-btn" id="iconFxReset">重置</button>
     </div>
   </div>
@@ -501,12 +498,12 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
   <div class="group">
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="3"/><path d="M8 10h8"/></svg></span>
-      <div class="row-main"><span class="row-title">自适应背景</span><span class="row-desc">磨砂玻璃的颜色跟着壁纸走</span></div>
+      <div class="row-main"><span class="row-title">自适应背景</span></div>
       <label class="ios-switch"><input type="checkbox" id="glassOn"><span class="ios-track"></span></label>
     </div>
     <div class="row has-glyph" id="glassColorRow">
       <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/></svg></span>
-      <div class="row-main"><span class="row-title">玻璃颜色</span><span class="row-desc">关掉自适应后才能自己选</span></div>
+      <div class="row-main"><span class="row-title">玻璃颜色</span></div>
       <input type="color" id="glassColor" class="mini-color" value="#ffffff">
     </div>
     <div class="srow"><div class="srow-top"><span class="row-title">Dock 磨砂强度</span><span class="srow-val" id="vDockBlur"></span></div><input type="range" id="rDockBlur" min="0" max="40" step="1"></div>
@@ -515,14 +512,14 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
     <div class="srow"><div class="srow-top"><span class="row-title">搜索 透明度</span><span class="srow-val" id="vSrchOp"></span></div><input type="range" id="rSrchOp" min="0" max="100" step="1"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="3"/><path d="M12 4v6M9 7l3 3 3-3"/></svg></span>
-      <div class="row-main"><span class="row-title">Dock 显示</span><span class="row-desc">「隐藏」后 Dock 里的 App 点不到；编辑桌面时会临时露出来</span></div>
+      <div class="row-main"><span class="row-title">Dock 显示</span></div>
       <div class="seg tight" id="dockModeSeg"><button type="button" data-m="show">显示</button><button type="button" data-m="plain">仅图标</button><button type="button" data-m="hide">隐藏</button></div>
     </div>
     <div class="srow"><div class="srow-top"><span class="row-title">Dock 圆角</span><span class="srow-val" id="vDockR"></span></div><input type="range" id="rDockR" min="0" max="44" step="1"></div>
     <div class="srow"><div class="srow-top"><span class="row-title">Dock 高度</span><span class="srow-val" id="vDockH"></span></div><input type="range" id="rDockH" min="72" max="120" step="1"></div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span>
-      <div class="row-main"><span class="row-title">恢复默认</span><span class="row-desc">Dock 和搜索的外观</span></div>
+      <div class="row-main"><span class="row-title">恢复默认</span></div>
       <button type="button" class="small-btn" id="glassReset">重置</button>
     </div>
   </div>
@@ -534,12 +531,12 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
   <div class="group">
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></span>
-      <div class="row-main"><span class="row-title">上传时自动转直链</span><span class="row-desc" id="dlDesc"></span></div>
+      <div class="row-main"><span class="row-title">上传时自动转直链</span></div>
       <label class="ios-switch"><input type="checkbox" id="useDirectLink"><span class="ios-track"></span></label>
     </div>
     <div class="row has-glyph">
       <span class="glyph"><svg viewBox="0 0 24 24"><path d="M12 15V5M8 9l4-4 4 4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3"/></svg></span>
-      <div class="row-main"><span class="row-title">转换已有本地图片</span><span class="row-desc">把图标、壁纸、字体里的本地数据换成直链，省存储空间</span></div>
+      <div class="row-main"><span class="row-title">转换已有本地图片</span></div>
       <button type="button" class="small-btn" id="convertLocal">转换</button>
     </div>
   </div>
@@ -597,7 +594,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
 <div class="sheet-modal" id="multiModal"><div class="sheet multi">
   <div class="sheet-grab"></div>
   <div class="sheet-head">
-    <div><div class="sheet-title">粘贴多行直链</div><div class="sheet-sub">一行一个链接，按图标顺序填入</div></div>
+    <div><div class="sheet-title">粘贴多行直链</div></div>
     <button type="button" class="small-btn" id="multiPaste">粘贴剪贴板</button>
   </div>
   <textarea id="multiInput" class="sheet-area" placeholder="https://example.com/1.jpg&#10;https://example.com/2.jpg" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
@@ -650,7 +647,7 @@ html[data-theme="dark"] .lib-item{background:repeating-conic-gradient(rgba(255,2
 </div></div>
 
 <div class="sheet-modal" id="libModal"><div class="sheet big">
-  <div class="sheet-head"><div><div class="sheet-title" id="libTitle">直链资源库</div><div class="sheet-sub">点一张图直接使用，和「直链」共用同一份记录</div></div></div>
+  <div class="sheet-head"><div><div class="sheet-title" id="libTitle">直链资源库</div></div></div>
   <input id="libSearch" class="sheet-input" type="search" placeholder="搜索文件名" autocomplete="off" autocapitalize="off" spellcheck="false">
   <div class="lib-grid" id="libGrid"></div>
   <div class="sheet-actions one"><button type="button" id="libCancel">取消</button></div>
@@ -760,13 +757,11 @@ const DL_TOKEN_PREF='useDirectLinkForIcons';
 $('useDirectLink').checked = localStorage.getItem(DL_TOKEN_PREF)==='1';
 $('useDirectLink').onchange=()=>{
   const on=$('useDirectLink').checked;
-  if(on&&!dlSettings().token){$('useDirectLink').checked=false;localStorage.setItem(DL_TOKEN_PREF,'0');refreshDlDesc();toast('还没在「直链」里配置 GitHub Token，先去直链填写再开启');return}
-  localStorage.setItem(DL_TOKEN_PREF,on?'1':'0');refreshDlDesc();
+  if(on&&!dlSettings().token){$('useDirectLink').checked=false;localStorage.setItem(DL_TOKEN_PREF,'0');toast('还没在「直链」里配置 GitHub Token，先去直链填写再开启');return}
+  localStorage.setItem(DL_TOKEN_PREF,on?'1':'0');
   if(on)toast('已开启：上传的图标、壁纸、字体会自动转成直链');
 };
-function refreshDlDesc(){const d=$('dlDesc');if(!d)return;const s=dlSettings();d.textContent=s.token?('上传到仓库 '+s.repo+'，图片换成直链网址'):'还没配置 Token，请先到「直链」填写'}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshDlDesc()});
-window.addEventListener('focus',refreshDlDesc);
+
 
 function dlSettings(){
   return {
@@ -2004,7 +1999,7 @@ function goBack(){
   }, {passive:true});
 })();
 
-renderSwatches();renderSavedBgs();renderFonts();renderApps();renderPlans();refreshDlDesc();
+renderSwatches();renderSavedBgs();renderFonts();renderApps();renderPlans();
 
 /* ===== 底栏 / 底部弹层跟随真实可视视口修正（键盘弹出时不被挡住） ===== */
 (function fixBottomToVisualViewport(){
