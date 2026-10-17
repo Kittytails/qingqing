@@ -12528,23 +12528,32 @@ const DL = window.DL = {
 function pluginStateMap() { try { return JSON.parse(localStorage.getItem(PLUGIN_STATE_KEY) || '{}') || {}; } catch (_) { return {}; } }
 function pluginOn(p) { const m = pluginStateMap(); return m[p.id] !== undefined ? !!m[p.id] : !!p.default; }
 function pluginSetOn(p, on) { const m = pluginStateMap(); m[p.id] = !!on; try { localStorage.setItem(PLUGIN_STATE_KEY, JSON.stringify(m)); } catch (_) {} }
+const PLUGIN_FILES = ['plugins.js', 'plugin-pull-latest.js'];   // 同目录；哪个文件不存在就当没有。新增插件文件，把名字加在这里
 function initPlugins() {
     return new Promise(res => {
         if (!isWebOrigin()) { DL.loadError = '当前不是从网址打开的，加载不了插件。请用 GitHub Pages 等网址访问。'; return res(); }
-        let syntaxMsg = '';
-        const onErr = e => { if (e.filename && /\/plugins\.js(\?|$)/.test(e.filename)) syntaxMsg = e.message || '脚本报错'; };
-        window.addEventListener('error', onErr);
-        const el = document.createElement('script');
-        el.src = new URL('plugins.js', location.href).href + '?t=' + Date.now();   // 带时间戳避开浏览器缓存
-        el.async = true;
-        const done = () => { window.removeEventListener('error', onErr); el.remove(); res(); };
-        el.onload = () => {
-            if (!DL.list.length) DL.loadError = syntaxMsg ? 'plugins.js 有错误：' + syntaxMsg : 'plugins.js 里没有注册任何插件';
-            else if (syntaxMsg) DL.loadError = 'plugins.js 部分代码出错：' + syntaxMsg;
-            done();
+        const syntax = {}, loaded = [];
+        const onErr = e => {
+            const f = String(e.filename || '').split('?')[0];
+            const n = PLUGIN_FILES.find(x => f.endsWith('/' + x));
+            if (n) syntax[n] = e.message || '脚本报错';
         };
-        el.onerror = () => { DL.loadError = ''; done(); };   // 没有这个文件 = 不用插件
-        document.head.appendChild(el);
+        window.addEventListener('error', onErr);
+        const loadOne = n => new Promise(r => {
+            const el = document.createElement('script');
+            el.src = new URL(n, location.href).href + '?t=' + Date.now();   // 带时间戳避开浏览器缓存
+            el.async = true;
+            el.onload = () => { loaded.push(n); el.remove(); r(); };
+            el.onerror = () => { el.remove(); r(); };   // 没有这个文件 = 不用这个插件
+            document.head.appendChild(el);
+        });
+        PLUGIN_FILES.reduce((p, n) => p.then(() => loadOne(n)), Promise.resolve()).then(() => {
+            window.removeEventListener('error', onErr);
+            const bad = loaded.find(n => syntax[n]);
+            if (!DL.list.length && loaded.length) DL.loadError = bad ? bad + ' 有错误：' + syntax[bad] : loaded[0] + ' 里没有注册任何插件';
+            else if (bad) DL.loadError = bad + ' 部分代码出错：' + syntax[bad];
+            res();
+        });
     });
 }
 // v1.11：插件可选钩子 onToggle——页面加载完插件后、以及在「设置」里开关时调用
@@ -12593,6 +12602,21 @@ async function renderPlugins() {
     note.style.display = DL.loadError ? '' : 'none';
     note.textContent = DL.loadError ? '部分插件有问题，详见「关于」' : '';
     DL.list.forEach(p => {
+        if (typeof p.run === 'function') {   // 带 run 的插件是「动作」：显示成点一下就执行的一行，没有开关
+            const row = document.createElement('div');
+            row.className = 'pref-card'; row.setAttribute('role', 'button'); row.tabIndex = 0;
+            row.innerHTML = '<span class="pref-text">' + escapeHtmlAttr(p.name || p.id) + '</span>' +
+                '<svg class="pref-chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5 6.5 7l-5 5.5"/></svg>';
+            let busy = false;
+            row.addEventListener('click', async () => {
+                if (busy) return; busy = true;
+                try { await p.run(DL); }
+                catch (e) { toast((p.name || p.id) + '：' + ((e && e.message) || '出错了'), 'error'); }
+                finally { busy = false; }
+            });
+            box.appendChild(row);
+            return;
+        }
         const on = pluginOn(p);
         const label = document.createElement('label');
         label.className = 'pref-card';
@@ -12610,7 +12634,7 @@ async function renderAboutPlugins() {
     const box = $('about-plugins');
     if (!box) return;
     await pluginsReady();
-    let h = '<div class="about-item"><div class="about-t">关于插件</div><div class="about-d">插件是页面同目录 plugins.js 里的小脚本，可以在「设置」里单独开关。插件和页面同源，能读到 Token，只启用自己写的或信得过的脚本。</div></div>';
+    let h = '<div class="about-item"><div class="about-t">关于插件</div><div class="about-d">插件是页面同目录 plugins.js、plugin-pull-latest.js 里的小脚本，可以在「设置」里单独开关。插件和页面同源，能读到 Token，只启用自己写的或信得过的脚本。</div></div>';
     DL.list.forEach(p => {
         h += '<div class="about-item"><div class="about-t">' + escapeHtmlAttr(p.name || p.id) + '</div><div class="about-d">' + escapeHtmlAttr(p.desc || '这个插件没有写说明。') + '</div></div>';
     });
